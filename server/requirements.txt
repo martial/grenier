@@ -6,3 +6,4 @@ Pillow
 Flask
 opencv-python
 python-dotenv
+pyaudio

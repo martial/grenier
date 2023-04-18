@@ -16,7 +16,7 @@ instance/
 .env
 .env.*
 *.log
-
+/venv/
 # ViteJS
 node_modules/
 /dist/

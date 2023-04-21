@@ -17,6 +17,8 @@ instance/
 .env.*
 *.log
 server/venv/
+#Models
+server/models
 # ViteJS
 node_modules/
 /dist/

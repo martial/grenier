@@ -1,0 +1,99 @@
+$BASE : 20;
+$R : 1/$BASE * 1rem;
+
+$W5 : 5 * $R;
+$W20 : 20 * $R;
+
+$FS15 : (15 / $BASE) * 1rem;
+$LH15 : 15 / 15;
+
+$FS20 : (20 / $BASE) * 1rem;
+$LH20 : 25 / 20;
+
+$FS40 : (40 / $BASE) * 1rem;
+$LH40 : 40 / 40;
+
+html
+{
+    // background-color: black;
+    // color: white;
+
+    margin: 0;
+    padding: 0;
+
+    font-family: sans-serif;
+    font-size: $BASE * 1px;
+    line-height: 1;
+}
+
+body
+{
+    margin: 0;
+    padding: $W20;
+}
+
+#container
+{
+    max-width: 1024px;
+    margin: auto;
+
+    h1
+    {
+        font-size: $FS40;
+        line-height: $LH40;
+    }
+}
+
+form
+{
+    .input
+    {
+        margin-bottom: $W20;
+    }
+
+    label
+    {
+        display: flex;
+        align-items: flex-start;
+
+        margin-bottom: $W5;
+
+        .hint
+        {
+            margin-left: $W5;
+            font-size: $FS15;
+            line-height: $LH15;
+        }
+    }
+
+    input
+    {
+        font-family: sans-serif;
+        font-size: $FS20;
+        line-height: $LH20;
+    }
+
+    textarea
+    {
+        width: 50%;
+
+        font-family: sans-serif;
+        font-size: $FS20;
+        line-height: $LH20;
+    }
+
+    input[type="submit"]
+    {
+        background-color: black;
+        color: white;
+        border: 1px solid black;
+        box-shadow: none;
+        cursor: pointer;
+
+        &:hover
+        {
+            background-color: white;
+            color: black;
+        }
+    }
+}

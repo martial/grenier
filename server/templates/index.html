@@ -21,14 +21,14 @@
                 <input type="number" id="conf_gpt_temp" name="conf_gpt_temp" step=0.01 min=0 max=1 value="{{ conf_gpt_temp }}" required>
             </div>
 
-            <div class="input">
+            <!-- <div class="input">
                 <label for="conf_listening_mode">listening Mode</label>
                 <select name="conf_listening_mode" id="conf_listening_mode" >
                     <option value="always_listening" {% if conf_listening_mode == 'always_listening' %}selected{% endif %}>Always listening</option>
                     <option value="always_listening_delay" {% if conf_listening_mode == 'always_listening_delay' %}selected{% endif %}>Always listening, delay responses</option>
                     <option value="processing_first" {% if conf_listening_mode == 'processing_first' %}selected{% endif %}>Processing first</option>
                 </select>
-            </div>
+            </div> -->
 
             <input type="submit" value="Save">
         </form>

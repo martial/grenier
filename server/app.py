@@ -48,7 +48,7 @@ with open('config.json', 'r') as f:
 
 conf_conv_history = data['conf_conv_history']
 conf_gpt_temp = data['conf_gpt_temp']
-conf_listening_mode = data['conf_listening_mode']
+# conf_listening_mode = data['conf_listening_mode']
 
 openai.api_key = api_key
 state = None
@@ -75,7 +75,7 @@ def call_openai_gpt(prompt):
     global stream_rec
     global waiting_timeout
     global status
-    global conf_listening_mode
+    # global conf_listening_mode
     global end_it
 
     # if (conf_listening_mode == "always_listening"):    
@@ -91,7 +91,7 @@ def call_openai_gpt(prompt):
     # if prompt != '' :
     #     stream_rec.append(prompt)
 
-    if status == "processing" and conf_listening_mode != "always_listening":
+    if status == "processing": #and conf_listening_mode != "always_listening":
         return
 
 
@@ -243,7 +243,7 @@ def map_range(value, from_min, from_max, to_min, to_max):
 def listen_and_transcribe():
 
     global status
-    global conf_listening_mode
+    # global conf_listening_mode
 
     #global listen_and_transcribe_stop
 
@@ -276,7 +276,7 @@ def listen_and_transcribe():
                     endOpenai()
                     
                 # if (status == "waiting" or conf_listening_mode == "always_listening") and rec.AcceptWaveform(audio_data):
-                if (status == "waiting") :
+                elif (status == "waiting") :
 
                     # if conf_listening_mode == "always_listening" :
                     #     for thread in threading.enumerate():
@@ -310,7 +310,7 @@ def config():
     return render_template('index.html', 
         conf_conv_history=conf_conv_history, 
         conf_gpt_temp=conf_gpt_temp,
-        conf_listening_mode=conf_listening_mode
+        # conf_listening_mode=conf_listening_mode
     )
 
 def configUpdated():
@@ -322,16 +322,16 @@ def submit_form():
 
     global conf_conv_history
     global conf_gpt_temp
-    global conf_listening_mode
+    # global conf_listening_mode
 
     conf_conv_history = request.form['conf_conv_history']
     conf_gpt_temp = float(request.form['conf_gpt_temp'])
-    conf_listening_mode = request.form['conf_listening_mode']
+    # conf_listening_mode = request.form['conf_listening_mode']
 
     json_data = {
         'conf_conv_history': conf_conv_history, 
         'conf_gpt_temp': conf_gpt_temp,
-        'conf_listening_mode' : conf_listening_mode
+        # 'conf_listening_mode' : conf_listening_mode
     }
 
     with open('config.json', 'w') as f:

@@ -9,13 +9,8 @@ PFont myFont;
 int fontsize = 24;
 float lineheight = 1.1;
 
-String receivedPrompt = "raconte moi une histoire";
-String receivedChat =
-"Bien sûr, je serais heureux de vous raconter une histoire. Voici une histoire que j'ai créée pour vous :\n"+
-"Il était une fois, dans une forêt dense et sombre, un petit renard nommé Roux. Roux était différent des autres renards car il avait des taches blanches sur ses pattes et une mèche blanche sur sa queue, ce qui le rendait facilement reconnaissable. Les autres renards se moquaient souvent de lui et le traitaient de Renard tacheté.\n"+
-"Un jour, Roux a décidé qu'il était fatigué d'être taquiné par les autres renards et qu'il voulait prouver qu'il était capable de faire quelque chose de grand. Il a entendu parler d'une compétition qui avait lieu dans la forêt - une course de vitesse pour les animaux les plus rapides et les plus agiles. Il a décidé qu'il participerait à cette compétition et qu'il montrerait à tous les autres renards qu'il était capable de courir aussi vite qu'eux, voire plus vite.\n"+
-"Le jour de la compétition est finalement arrivé. Roux était nerveux mais déterminé. Il a couru aussi vite qu'il le pouvait, en se concentrant sur la ligne d'arrivée. Les autres renards ont";
-
+String receivedPrompt = "";
+String receivedChat = "";
 float maxWidth = 700;
 float padding = 20;
 
@@ -26,8 +21,6 @@ String mode = "listening";
 
 BackgroundColorFader fader;
 ListeningCircle listen_circle;
-
-float listen_timeout = 0;
 
 void setup() 
 {
@@ -49,18 +42,6 @@ void setup()
 
 void draw() 
 {
-    // if (listen_timeout>=0)
-    // {
-    //   listen_timeout += (1/((float)60))/3;
-    //   if ( listen_timeout>=1 && mode != "listening" )
-    //   {
-    //       fader.changeColor(listen_color);
-    //       receivedPrompt = "";
-    //       receivedChat = "";
-    //       mode = "listening";
-    //   }
-    // }
-
     fader.update();
 
     if (mode == "listening")
@@ -87,13 +68,6 @@ void draw()
 
         //
 
-        // String txt = receivedChat;
-        // String[] txt_list = split(txt, ' ');
-        // String new_str = "";
-        // for ( int i = 0; i < frameCount%txt_list.length; i++)
-        // {
-        //   new_str += txt_list[i]+" ";
-        // }
         String new_str = receivedChat;
         
         float max_height = height-padding-offset_y;
@@ -153,13 +127,11 @@ void oscEvent(OscMessage msg)
         String status = msg.get(0).stringValue();      
         if (status.equals("processing")) 
         {
-            listen_timeout = -1;
             fader.changeColor(process_color);
             mode = "processing";
         }
         if (status.equals("listening")) 
         {
-            listen_timeout = 0;
             fader.changeColor(listen_color);
             receivedPrompt = "";
             receivedChat = "";
@@ -211,7 +183,6 @@ void keyPressed()
 {   
     if (mode == "listening" ) 
     { 
-        listen_timeout = -1;
         mode = "processing";
         fader.changeColor(process_color);
     }

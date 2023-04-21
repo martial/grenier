@@ -9,6 +9,7 @@ To install this app, you will need to set up a virtual environment and install t
 - Activate the virtual environment using `source venv/bin/activate` on Unix/MacOS, or .`\venv\Scripts\activate` on Windows.
 - Install the required packages using `pip install -r requirements.txt`
 - Create a .env file in the root directory of your project, and set any environment variables required by your app.
+— Download the Vosk models here : https://alphacephei.com/vosk/models
 
   SECRET_KEY=your-secret-key-here
 

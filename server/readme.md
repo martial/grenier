@@ -13,6 +13,16 @@ To install this app, you will need to set up a virtual environment and install t
 The app use vosk-model-fr-0.22
 — Export the Nicolas Pde App in Processing > macos-x86_64
 — Build SpeechTranscription App in SpeechTranscription/DerivedData
+    . Be sure to have an updated OS/Xcode 
+    . File > Add Packages > Paste https://github.com/orchetect/OSCKit
+    . then https://github.com/robbiehanson/CocoaAsyncSocket
+    . then https://github.com/orchetect/SwiftASCII
+    . If you want to create a new project > Interface Storyboard > macOS App
+    . Select your Target > Signing & Capabilities > check "Incoming Connections", "Outgoing Connections", "Audio Input"
+    . Select your Target > Info > add "Privacy - Speech Recognition Usage Description" and "Privacy - Microphone Usage Description" 
+
+
+
 
 SECRET_KEY=your-secret-key-here
 

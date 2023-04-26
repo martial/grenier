@@ -14,7 +14,6 @@ class BackgroundColorFader
     startColor = currentColor;
     endColor = color(r, g, b);
     startTime = millis();
-    println(r);
   }
 
   void changeColor(color c) {

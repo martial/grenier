@@ -32,6 +32,28 @@ body
     padding: $W20;
 }
 
+#updated
+{
+    display: none;
+}
+
+#update_notice
+{
+    opacity: 0;
+    color: green;
+
+    &.show
+    {
+        opacity: 1;
+    }
+
+    &.hide
+    {
+        opacity: 0;
+        transition: opacity ease-in-out 0.5s;
+    }
+}
+
 #container
 {
     max-width: 1024px;

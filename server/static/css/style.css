@@ -9,12 +9,24 @@ html {
     margin: 0;
     padding: 1rem; }
 
-    #container {
-      max-width: 1024px;
-      margin: auto; }
-      #container h1 {
-        font-size: 2rem;
-        line-height: 1; }
+    #updated {
+      display: none; }
+
+      #update_notice {
+        opacity: 0;
+        color: green; }
+        #update_notice.show {
+          opacity: 1; }
+          #update_notice.hide {
+            opacity: 0;
+            transition: opacity ease-in-out 0.5s; }
+
+#container {
+  max-width: 1024px;
+  margin: auto; }
+  #container h1 {
+    font-size: 2rem;
+    line-height: 1; }
 
 form .input {
   margin-bottom: 1rem; }

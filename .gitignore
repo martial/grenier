@@ -12,7 +12,7 @@ dist/
 build/
 
 # Flask
-instance/
+instance/us
 .env
 .env.*
 *.log
@@ -22,7 +22,10 @@ server/models
 # ViteJS
 node_modules/
 /dist/
-
+#SpeechTranscription
+SpeechTranscription/DerivedData
+#nicolas pde
+nicolas/macos-x86_64
 # React
 /node_modules/
 /build/

@@ -5,6 +5,8 @@
   </head>
   <body>
 
+    <div id="updated">{{ updated }}</div>
+
     <div id="container">
 
         <h1>GRENIER SERVER CONFIGURATION</h1>
@@ -12,13 +14,23 @@
         <form method="POST" action="{{ url_for('submit_form') }}">
 
             <div class="input">
-                <label for="conf_conv_history">Conversation History</label>
-                <textarea id="conf_conv_history" name="conf_conv_history" rows="4" required>{{ conf_conv_history }}</textarea>
+                <label for="conv_history">Conversation History</label>
+                <textarea id="conv_history" name="conv_history" rows="4" required>{{ conv_history }}</textarea>
             </div>
             
             <div class="input">
-                <label for="conf_gpt_temp">GPT Temperature <span class="hint">(min=0, max=1)</span></label>
-                <input type="number" id="conf_gpt_temp" name="conf_gpt_temp" step=0.01 min=0 max=1 value="{{ conf_gpt_temp }}" required>
+                <label for="gpt_temp">GPT Temperature <span class="hint">(min=0, max=1)</span></label>
+                <input type="number" id="gpt_temp" name="gpt_temp" step=0.01 min=0 max=1 value="{{ gpt_temp }}" required>
+            </div>
+
+            <div class="input">
+                <label for="transcription_silence">Transcription Silence Time<span class="hint">(min=0.5, max=5)</span></label>
+                <input type="number" id="transcription_silence" name="transcription_silence" step=0.01 min=0.5 max=5 value="{{ transcription_silence }}" required>
+            </div>
+
+            <div class="input">
+                <label for="transcription_restart">Transcription Restart Delay <span class="hint">(min=0.1, max=1)</span></label>
+                <input type="number" id="transcription_restart" name="transcription_restart" step=0.01 min=0.1 max=1 value="{{ transcription_restart }}" required>
             </div>
 
             <!-- <div class="input">
@@ -33,6 +45,20 @@
             <input type="submit" value="Save">
         </form>
 
+        <div id="update_notice">Configuration updated</div>
+
     </div>
+
+    <script>
+        var up = document.getElementById("updated").innerHTML;
+        if ( up == '1') 
+        {
+            document.getElementById("update_notice").classList.add("show");
+            setTimeout( function(){
+                document.getElementById("update_notice").classList.add("hide");
+                document.getElementById("update_notice").classList.remove("show");
+            }, 2000);
+        }
+    </script>
   </body>
 </html>

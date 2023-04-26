@@ -6,5 +6,8 @@ Pillow
 Flask
 opencv-python
 python-dotenv
-pyaudio
 Flask-Scss
+python-osc
+pyaudio
+vosk
+webbrowser

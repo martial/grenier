@@ -10,8 +10,9 @@ To install this app, you will need to set up a virtual environment and install t
 - Install the required packages using `pip install -r requirements.txt`
 - Create a .env file in the root directory of your project, and set any environment variables required by your app.
 — Download the Vosk models here : https://alphacephei.com/vosk/models
+— Install SwiftOSC : https://github.com/ExistentialAudio/SwiftOSC
 
-  SECRET_KEY=your-secret-key-here
+SECRET_KEY=your-secret-key-here
 
 Navigate to http://localhost:5000 in your web browser to use the app.
 

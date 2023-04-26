@@ -26,13 +26,20 @@ import webbrowser
 
 load_dotenv() 
 
+with open("server-config.json", "r") as file:
+    server_config = json.load(file)
+    print(server_config)
+
 # Set the IP address and port of the OSC server
-ip_address = "127.0.0.1"
-port = 8000
+ip_address = server_config["ip_address"]
+server_port = server_config["ports"]["server"]
+pde_port = server_config["ports"]["server_to_pde"]
+transcript_port_client = server_config["ports"]["server_to_transcript"]
+transcript_port_server = server_config["ports"]["transcript_to_server"]
 
 # Create an OSC client
-client = udp_client.SimpleUDPClient(ip_address, port)
-transcription_client = udp_client.SimpleUDPClient(ip_address, 9001)
+client = udp_client.SimpleUDPClient(ip_address, pde_port)
+transcription_client = udp_client.SimpleUDPClient(ip_address, transcript_port_client)
 
 osc_address = "/status/"
 full_reply_content = 'listening'
@@ -50,7 +57,8 @@ def sendTranscriptionConfig():
     osc_address = "/config/"
     transcription_client.send_message(osc_address, [
         trans_config["transcription_silence"], 
-        trans_config["transcription_restart"]
+        trans_config["transcription_restart"],
+        trans_config["language"]
     ])
 
 def handle_get_config_message(address, *args):
@@ -112,8 +120,8 @@ def start_osc_server():
     dispatch.map("/get-config", handle_get_config_message)    
 
     # Création du serveur OSC
-    server = osc_server.ThreadingOSCUDPServer((ip_address, 9000), dispatch)
-    print("OSC server started on {}:{}".format(ip_address, 9000))
+    server = osc_server.ThreadingOSCUDPServer((ip_address, transcript_port_server), dispatch)
+    print("OSC server started on {}:{}".format(ip_address, transcript_port_server))
 
     # Démarrage du serveur OSC dans un thread dédié
     server_thread = threading.Thread(target=server.serve_forever)
@@ -124,7 +132,7 @@ def start_osc_server():
 api_key = os.getenv("API_KEY")
 
 # Create database
-# createDB()
+createDB()
 
 # Load config
 res = getDBConfig(True)
@@ -133,6 +141,7 @@ gpt_temp = res["gpt_temp"]
 res = getDBTransConfig()
 transcription_silence = res["transcription_silence"]
 transcription_restart = res["transcription_restart"]
+language = res["language"]
 
 openai.api_key = api_key
 state = None
@@ -249,10 +258,10 @@ def map_range(value, from_min, from_max, to_min, to_max):
 
 
 @app.route('/config')
-def config(conv_history=None, gpt_temp=None, transcription_silence=None, transcription_restart=None):
+def config(language=None, conv_history=None, gpt_temp=None, transcription_silence=None, transcription_restart=None):
 
-    params_set = conv_history and gpt_temp and transcription_silence and transcription_restart
-    request_set = request.args.get('conv_history') and request.args.get('gpt_temp') and request.args.get('transcription_silence') and request.args.get('transcription_restart')
+    params_set = language and conv_history and gpt_temp and transcription_silence and transcription_restart
+    request_set = request.args.get('language') and request.args.get('conv_history') and request.args.get('gpt_temp') and request.args.get('transcription_silence') and request.args.get('transcription_restart')
     
     if not (params_set) :
         if not (request_set) :
@@ -263,13 +272,16 @@ def config(conv_history=None, gpt_temp=None, transcription_silence=None, transcr
             res = getDBTransConfig()
             transcription_silence = res["transcription_silence"]
             transcription_restart = res["transcription_restart"]
+            language = res["language"]
         else :
             conv_history = request.args.get('conv_history')
             gpt_temp = request.args.get('gpt_temp')
             transcription_silence = request.args.get('transcription_silence')
             transcription_restart = request.args.get('transcription_restart')
+            language = request.args.get('language')
 
     return render_template('index.html', 
+        language=language,
         conv_history=conv_history, 
         gpt_temp=gpt_temp,
         updated=updated,
@@ -284,9 +296,10 @@ def submit_form():
     gpt_temp = float(request.form['gpt_temp'])
     transcription_silence = float(request.form['transcription_silence'])
     transcription_restart = float(request.form['transcription_restart'])
+    language = request.form['language']
 
     updateDB(conv_history, gpt_temp)
-    updateTransDB(transcription_silence, transcription_restart)
+    updateTransDB(transcription_silence, transcription_restart, language)
     sendTranscriptionConfig()
 
     return redirect(url_for("config"))#,conv_history=conv_history, gpt_temp=gpt_temp))
@@ -303,6 +316,6 @@ if __name__ == "__main__":
         #     transcription_client._sock.close()
 
     sendTranscriptionConfig()
-    webbrowser.open('http://127.0.0.1:8080/config')  # Go to example.com
-    app.run(debug=True, host="0.0.0.0", port=8080)
+    webbrowser.open('http://'+ip_address+':'+str(server_port)+'/config')
+    app.run(debug=True, host="0.0.0.0", port=server_port)
 

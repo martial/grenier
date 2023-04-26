@@ -1,6 +1,8 @@
 #!/bin/sh
 
 cp ./nicolas/Cogito-Regular-22.vlw ./nicolas/macos-x86_64/Cogito-Regular-22.vlw 
+cp ./server/server-config.json ./SpeechTranscription/DerivedData/SpeechTranscription/Build/Products/Debug/SpeechTranscription.app/Contents/Resources/server-config.json
+cp ./server/server-config.json ./nicolas/macos-x86_64/server-config.json
 
 open ./SpeechTranscription/DerivedData/SpeechTranscription/Build/Products/Debug/SpeechTranscription.app
 open ./nicolas/macos-x86_64/nicolas.app

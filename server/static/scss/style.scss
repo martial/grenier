@@ -57,7 +57,7 @@ body
 #container
 {
     max-width: 1024px;
-    margin: auto;
+    // margin: auto;
 
     h1
     {
@@ -68,6 +68,16 @@ body
 
 form
 {
+    display: flex;
+    flex-wrap: wrap;
+
+    .col
+    {
+        flex-grow: 0;
+        flex-shrink: 0;
+        width: 50%;
+    }
+
     .input
     {
         margin-bottom: $W20;
@@ -88,16 +98,30 @@ form
         }
     }
 
-    input
+    input,
+    select
     {
         font-family: sans-serif;
         font-size: $FS20;
         line-height: $LH20;
+
+        width: 20%;
+        padding: $W5;
+        box-sizing: border-box;
+
+        -webkit-appearance: none;
+        outline: none;
+        box-shadow: none;
+        border: 1px solid black;
+        border-radius: 0;
     }
 
     textarea
     {
-        width: 50%;
+        width: 90%;
+        padding: $W5;
+        border: 1px solid black;
+        box-sizing: border-box;
 
         font-family: sans-serif;
         font-size: $FS20;

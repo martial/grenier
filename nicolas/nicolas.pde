@@ -4,7 +4,6 @@ import java.io.UnsupportedEncodingException;
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 OscP5 oscP5;
-NetAddress sender;
 
 PFont myFont;
 int fontsize = 24;
@@ -26,13 +25,19 @@ ListeningCircle listen_circle;
 Minim minim;
 AudioInput audioInput;
 
+JSONObject json;
+
 void setup()
 {
   size(800, 600);
+  
+  json = loadJSONObject("server-config.json");
+
+  String host = json.getString("ip_address");
+  int port = json.getJSONObject("ports").getInt("server_to_pde");
 
   // Initialize oscP5 and listen on port 8000
-  oscP5 = new OscP5(this, 8000);
-  sender = new NetAddress("127.0.0.1", 8000);
+  oscP5 = new OscP5(this, port);
 
   fader = new BackgroundColorFader(250);  // Create an instance of BackgroundColorFader with a fade duration of 5 seconds
   fader.changeColor(listen_color);//152, 251, 152);

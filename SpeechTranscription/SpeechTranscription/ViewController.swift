@@ -19,7 +19,7 @@ class ViewController: NSViewController {
     var recognitionTask: SFSpeechRecognitionTask?
 
     let oscClient = OSCClient()
-    let oscServer = OSCServer(port:9001)
+    var oscServer = OSCServer();
 
     var transcription = "";
 
@@ -33,70 +33,132 @@ class ViewController: NSViewController {
 
     var status = "listening";
     var started_on_processing = false;
+    
+    var language = "fr"
+        
+    var server_port_client = 0;
+    var server_port_server = 0;
+
 
     override func viewDidLoad() {
+        
         super.viewDidLoad()
+        
+        
+        guard let path = Bundle.main.path(forResource: "server-config", ofType: "json") else {
+            print("Failed to find JSON file")
+            return
+        }
 
-        // Do any additional setup after loading the view.
-        speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "fr_FR"))
-        SFSpeechRecognizer.requestAuthorization { authStatus in
-            OperationQueue.main.addOperation {
-                if authStatus == .authorized {
-
-                    self.oscServer.setHandler { message, timeTag in
-
-                        if ( message.addressPattern == "/config/" )
-                        {
-                            do {
-                                
-                                let (st, rt) = try message.values.masked(Float.self, Float.self)
-                                self.silence_timeout = Double(st)
-                                self.restart_timeout = Double(rt)
-                                                                
-                            } catch {
-                                print("Error: \(error)")
-                            }
-                            
-                        }
-                        else if ( message.addressPattern == "/stopped/" )
-                        {
-                            self.transcription = "";
-                            self.stopRecording()
-                            Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
-                                self.startRecording()
-                            }
-                        }
-                        else if ( message.addressPattern == "/status/" )
-                        {
-                            do {
-                                
-                                let (st) = try message.values.masked(String.self)
-                                self.status = st
-                                
-                            } catch {
-                                print("Error: \(error)")
-                            }
-                        }
-
+        do {
+            let data = try Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe)
+            let json = try JSONSerialization.jsonObject(with: data, options: [])
+            if let dictionary = json as? [String: Any] {
+                
+                if let ports = dictionary["ports"] as? [String: Int]
+                {
+                    if let spc = ports["transcript_to_server"] as? Int {
+                        server_port_client = spc;
                     }
                     
-                    do { try self.oscServer.start() } catch { print(error) }
-                    try? self.oscClient.send(
-                        
-                        .message("/get-config", values: []),
-                            to: "localhost", // remote IP address or hostname
-                            port: 9000 // standard OSC port but can be changed
-                    )
+                    if let sps = ports["server_to_transcript"] as? Int {
+                        server_port_server = sps;
+                    }
+                }
+                
+                //self.server_port_client = dictionary["ports"]["transcript_to_server"]
+                //self.server_port_server = dictionary["ports"]["server_to_transcript"]
+
+                // Do something with the dictionary here
+            }
+        } catch {
+            print("Failed to load JSON file: \(error.localizedDescription)")
+        }
+        
+        oscServer = OSCServer(port:UInt16(server_port_server));
+        
+        self.oscServer.setHandler { message, timeTag in
+
+            if ( message.addressPattern == "/config/" )
+            {
+                do {
                     
+                    let (st, rt, lg) = try message.values.masked(Float.self, Float.self, String.self)
+                    self.silence_timeout = Double(st)
+                    self.restart_timeout = Double(rt)
+                    self.language = lg
+                    
+                    self.restartAll()
+                                                    
+                } catch {
+                    print("Error: \(error)")
+                }
+                
+            }
+            else if ( message.addressPattern == "/stopped/" )
+            {
+                self.transcription = "";
+                self.stopRecording()
+                Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
                     self.startRecording()
                 }
             }
+            else if ( message.addressPattern == "/status/" )
+            {
+                do {
+                    
+                    let (st) = try message.values.masked(String.self)
+                    self.status = st
+                    
+                } catch {
+                    print("Error: \(error)")
+                }
+            }
+
         }
+        
+        do { try self.oscServer.start() } catch { print(error) }
+        try? self.oscClient.send(
+            
+            .message("/get-config", values: []),
+                to: "localhost", // remote IP address or hostname
+                port: UInt16(server_port_client) // standard OSC port but can be changed
+        )
+        
+
+        restartAll()
     }
 
     override var representedObject: Any? {
         didSet {
         // Update the view, if already loaded.
+        }
+    }
+
+    func restartAll()
+    {
+        stopRecording()
+        speechRecognizer = nil
+
+        // Do any additional setup after loading the view.
+        if (language == "fr")
+        {
+            speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "fr_FR"))
+        }
+        else
+        {
+            speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+        }
+                
+        SFSpeechRecognizer.requestAuthorization { authStatus in
+            OperationQueue.main.addOperation {
+                if authStatus == .authorized {
+
+                    Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
+                        self.startRecording()
+                    }
+                }
+            }
         }
     }
     
@@ -145,7 +207,7 @@ class ViewController: NSViewController {
                     try? self.oscClient.send(
                         .message("/stop", values: [1]),
                             to: "localhost", // remote IP address or hostname
-                            port: 9000 // standard OSC port but can be changed
+                        port: UInt16(self.server_port_client) // standard OSC port but can be changed
                     )
                 }
                 
@@ -165,7 +227,7 @@ class ViewController: NSViewController {
                     try? self.oscClient.send(
                         .message("/speech", values: [self.transcription, self.started_on_processing]),// self.started_on_processing]),
                             to: "localhost", // remote IP address or hostname
-                            port: 9000 // standard OSC port but can be changed
+                        port: UInt16(self.server_port_client) // standard OSC port but can be changed
                     )
                 //}
                 
@@ -240,7 +302,7 @@ class ViewController: NSViewController {
                 try? self.oscClient.send(
                     .message("/end-speech", values: [self.started_on_processing]),
                         to: "localhost", // remote IP address or hostname
-                        port: 9000 // standard OSC port but can be changed
+                    port: UInt16(self.server_port_client) // standard OSC port but can be changed
                 )
 
                 

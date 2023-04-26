@@ -23,7 +23,7 @@ server/models
 node_modules/
 /dist/
 #SpeechTranscription
-SpeechTranscription/DerivedData
+SpeechTranscription/DerivedData/**
 !SpeechTranscription/DerivedData/SpeechTranscription/Build/Products/Debug
 
 #nicolas pde

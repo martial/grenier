@@ -9,8 +9,10 @@ To install this app, you will need to set up a virtual environment and install t
 - Activate the virtual environment using `source venv/bin/activate` on Unix/MacOS, or .`\venv\Scripts\activate` on Windows.
 - Install the required packages using `pip install -r requirements.txt`
 - Create a .env file in the root directory of your project, and set any environment variables required by your app.
-— Download the Vosk models here : https://alphacephei.com/vosk/models
-— Install SwiftOSC : https://github.com/ExistentialAudio/SwiftOSC
+— Download the Vosk models here : https://alphacephei.com/vosk/models and put them in server/models
+The app use vosk-model-fr-0.22
+— Export the Nicolas Pde App in Processing > macos-x86_64
+— Build SpeechTranscription App in SpeechTranscription/DerivedData
 
 SECRET_KEY=your-secret-key-here
 

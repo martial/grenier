@@ -1,10 +1,13 @@
 openai
 python-osc
 SpeechRecognition
-requests
 Pillow
 Flask
-opencv-python
+Flask-SCSS
 python-dotenv
+uuid
+opencv-python
+numpy
+vosk
 pyaudio
-Flask-Scss
+requests

@@ -120,7 +120,7 @@ def call_openai_gpt(prompt):
     conversation_history.append({"role": "user", "content": prompt})
 
     response = openai.ChatCompletion.create(
-        model="gpt-4",#3.5-turbo",
+        model="gpt-3.5-turbo",#3.5-turbo",
         messages=conversation_history,
         max_tokens=2048,
         n=1,
@@ -265,6 +265,7 @@ def listen_and_transcribe():
             osc_address = "/volume/"
             osc_message = volume_pct
             client.send_message(osc_address, osc_message)
+
             
             if len(audio_data) == 0:
                 continue
@@ -276,7 +277,7 @@ def listen_and_transcribe():
                     endOpenai()
                     
                 # if (status == "waiting" or conf_listening_mode == "always_listening") and rec.AcceptWaveform(audio_data):
-                if (status == "waiting") :
+                elif (status == "waiting") :
 
                     # if conf_listening_mode == "always_listening" :
                     #     for thread in threading.enumerate():

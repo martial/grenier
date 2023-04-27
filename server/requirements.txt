@@ -1,13 +1,7 @@
 openai
-python-osc
-SpeechRecognition
 requests
-Pillow
 Flask
-opencv-python
 python-dotenv
 Flask-Scss
 python-osc
-pyaudio
-vosk
 webbrowser

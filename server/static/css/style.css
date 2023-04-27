@@ -14,7 +14,8 @@ html {
 
       #update_notice {
         opacity: 0;
-        color: green; }
+        color: green;
+        margin-top: 1rem; }
         #update_notice.show {
           opacity: 1; }
           #update_notice.hide {

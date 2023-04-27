@@ -108,11 +108,20 @@ class ViewController: NSViewController {
                 do {
                     
                     let (st) = try message.values.masked(String.self)
+                    if (self.status == "processing" && st == "listening")
+                    {
+                        self.stopRecording();
+                        Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
+                            self.startRecording()
+                        }
+                    }
+
                     self.status = st
                     
                 } catch {
                     print("Error: \(error)")
                 }
+                
             }
 
         }
@@ -294,11 +303,9 @@ class ViewController: NSViewController {
         
             //if ( self.transcription != "" )
             //{
-                print("SEND END SPEECH", self.started_on_processing)
-
                 self.transcription = "";
                 self.stopRecording()
-                
+                            
                 try? self.oscClient.send(
                     .message("/end-speech", values: [self.started_on_processing]),
                         to: "localhost", // remote IP address or hostname

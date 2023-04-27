@@ -23,8 +23,18 @@
                 </div>
 
                 <div class="input">
-                    <label for="conv_history">Conversation History</label>
-                    <textarea id="conv_history" name="conv_history" rows="4" required>{{ conv_history }}</textarea>
+                    <label for="gpt_role">Role</label>
+                    <textarea id="gpt_role" name="gpt_role" rows="4" placeholder="À partir de maintenant tu parles comme..." required>{{ gpt_role }}</textarea>
+                </div>
+
+                <div class="input">
+                    <label for="gpt_context">Context</label>
+                    <textarea id="gpt_context" name="gpt_context" rows="4" placeholder="Notre conversation doit prendre en compte le contexte suivant: ..." >{{ gpt_context }}</textarea>
+                </div>
+
+                <div class="input">
+                    <label for="gpt_action">Action</label>
+                    <textarea id="gpt_action" name="gpt_action" rows="4" >{{ gpt_action }}</textarea>
                 </div>
             </div>
 
@@ -45,10 +55,12 @@
                 </div>
             </div>
 
+            <div class="col">
+                <div id="update_notice">Configuration updated</div>
+            </div>
             <input type="submit" value="Save">
         </form>
 
-        <div id="update_notice">Configuration updated</div>
 
     </div>
 

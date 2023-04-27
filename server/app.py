@@ -1,26 +1,12 @@
 import openai
 import json
 from pythonosc import udp_client, dispatcher, osc_server
-import speech_recognition as sr
-import time
 import os
-import subprocess
-import requests
-from PIL import Image
-from io import BytesIO
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
-import uuid
-import cv2
-import numpy as np
-from PIL import ImageOps
 from dotenv import load_dotenv
 from flask_scss import Scss
 from vosk import Model, KaldiRecognizer, SetLogLevel
-import pyaudio
-import audioop
-from flask import Response, stream_with_context
 import threading
-import time
 from database import createDB, getDBConfig, getDBUpdate, updateDB, getDBTransConfig, updateTransDB
 import webbrowser
 
@@ -75,7 +61,7 @@ def handle_speech_message(address, *args):
     if (transcription == "Stop"):
         endOpenai()
 
-    if (status == "waiting" and not started_on_processing): #and transcription != ''):
+    if (status == "waiting" and not started_on_processing and transcription != ''):
 
         osc_message = transcription.encode('utf-8')
         osc_address = "/prompt/"
@@ -98,7 +84,7 @@ def handle_end_speech_message(address, *args):
     started_on_processing = (bool(args[0]))
 
     # Traitement du message OSC reçu
-    if ( transcription != "" and status == "waiting" and not started_on_processing ):
+    if (status == "waiting" and not started_on_processing and transcription != ''):
         call_openai_gpt(transcription)
     
     transcription = ""
@@ -132,11 +118,13 @@ def start_osc_server():
 api_key = os.getenv("API_KEY")
 
 # Create database
-createDB()
+# createDB()
 
 # Load config
 res = getDBConfig(True)
-conv_history = res["conv_history"]
+gpt_role = res["gpt_role"]
+gpt_context = res["gpt_context"]
+gpt_action = res["gpt_action"]
 gpt_temp = res["gpt_temp"]
 res = getDBTransConfig()
 transcription_silence = res["transcription_silence"]
@@ -145,7 +133,9 @@ language = res["language"]
 
 openai.api_key = api_key
 state = None
-conversation_history = [{"role": "system", "content": conv_history}]
+conversation_history = [{"role": "system", "content": gpt_role}]
+conversation_history = [{"role": "system", "content": gpt_context}]
+conversation_history = [{"role": "system", "content": gpt_action}]
 
 app = Flask(__name__)
 app.debug = True # needed to scss to compile
@@ -164,7 +154,10 @@ def call_openai_gpt(prompt):
     global end_it
 
     global conversation_history
-    global conv_history
+    global gpt_role
+    global gpt_context
+    global gpt_action
+
     global gpt_temp
 
     # Returns if empty prompt
@@ -180,9 +173,13 @@ def call_openai_gpt(prompt):
     # Check if config or history should be updated (changes from html form)
     res = getDBUpdate()
     if (res):
-        conv_history = res["conv_history"]
+        gpt_role = res["gpt_role"]
+        gpt_context = res["gpt_context"]
+        gpt_action = res["gpt_action"]
         gpt_temp = res["gpt_temp"]
-        conversation_history.append({"role": "system", "content": conv_history})
+        conversation_history.append({"role": "system", "content": gpt_role})
+        conversation_history.append({"role": "system", "content": gpt_context})
+        conversation_history.append({"role": "system", "content": gpt_action})
 
     # We will go to processing mode now
     status = "processing"
@@ -207,7 +204,7 @@ def call_openai_gpt(prompt):
 
     # ChatGPT query
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",#"gpt-4",#
+        model="gpt-4",#"gpt-3.5-turbo",#
         messages=conversation_history,
         max_tokens=2048,
         n=1,
@@ -258,15 +255,17 @@ def map_range(value, from_min, from_max, to_min, to_max):
 
 
 @app.route('/config')
-def config(language=None, conv_history=None, gpt_temp=None, transcription_silence=None, transcription_restart=None):
+def config(language=None, gpt_role=None, gpt_context=None, gpt_action=None, gpt_temp=None, transcription_silence=None, transcription_restart=None):
 
-    params_set = language and conv_history and gpt_temp and transcription_silence and transcription_restart
-    request_set = request.args.get('language') and request.args.get('conv_history') and request.args.get('gpt_temp') and request.args.get('transcription_silence') and request.args.get('transcription_restart')
+    params_set = language and gpt_role and gpt_context and gpt_action and gpt_temp and transcription_silence and transcription_restart
+    request_set = request.args.get('language') and request.args.get('gpt_role')  and request.args.get('gpt_context')  and request.args.get('gpt_action') and request.args.get('gpt_temp') and request.args.get('transcription_silence') and request.args.get('transcription_restart')
     
     if not (params_set) :
         if not (request_set) :
             res = getDBConfig()
-            conv_history = res["conv_history"]
+            gpt_role = res["gpt_role"]
+            gpt_context = res["gpt_context"]
+            gpt_action = res["gpt_action"]
             gpt_temp = res["gpt_temp"]
             updated = res["updated"]
             res = getDBTransConfig()
@@ -274,7 +273,9 @@ def config(language=None, conv_history=None, gpt_temp=None, transcription_silenc
             transcription_restart = res["transcription_restart"]
             language = res["language"]
         else :
-            conv_history = request.args.get('conv_history')
+            gpt_role = request.args.get('gpt_role')
+            gpt_context = request.args.get('gpt_context')
+            gpt_action = request.args.get('gpt_action')
             gpt_temp = request.args.get('gpt_temp')
             transcription_silence = request.args.get('transcription_silence')
             transcription_restart = request.args.get('transcription_restart')
@@ -282,7 +283,9 @@ def config(language=None, conv_history=None, gpt_temp=None, transcription_silenc
 
     return render_template('index.html', 
         language=language,
-        conv_history=conv_history, 
+        gpt_role=gpt_role, 
+        gpt_context=gpt_context, 
+        gpt_action=gpt_action, 
         gpt_temp=gpt_temp,
         updated=updated,
         transcription_silence=transcription_silence,
@@ -292,17 +295,19 @@ def config(language=None, conv_history=None, gpt_temp=None, transcription_silenc
 @app.route('/submit_form', methods=['POST'])
 def submit_form():
 
-    conv_history = request.form['conv_history']
+    gpt_role = request.form['gpt_role']
+    gpt_context = request.form['gpt_context']
+    gpt_action = request.form['gpt_action']
     gpt_temp = float(request.form['gpt_temp'])
     transcription_silence = float(request.form['transcription_silence'])
     transcription_restart = float(request.form['transcription_restart'])
     language = request.form['language']
 
-    updateDB(conv_history, gpt_temp)
+    updateDB(gpt_role, gpt_context, gpt_action, gpt_temp)
     updateTransDB(transcription_silence, transcription_restart, language)
     sendTranscriptionConfig()
 
-    return redirect(url_for("config"))#,conv_history=conv_history, gpt_temp=gpt_temp))
+    return redirect(url_for("config"))#,gpt_role=gpt_role, gpt_temp=gpt_temp))
 
 if __name__ == "__main__":
         

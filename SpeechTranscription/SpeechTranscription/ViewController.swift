@@ -294,11 +294,9 @@ class ViewController: NSViewController {
         
             //if ( self.transcription != "" )
             //{
-                print("SEND END SPEECH", self.started_on_processing)
-
                 self.transcription = "";
                 self.stopRecording()
-                
+                            
                 try? self.oscClient.send(
                     .message("/end-speech", values: [self.started_on_processing]),
                         to: "localhost", // remote IP address or hostname

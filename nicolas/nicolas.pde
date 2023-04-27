@@ -116,7 +116,10 @@ void draw()
   fill(0);
 
   if ( mode == "listening")
-    listen_circle.draw(myFont);    
+    listen_circle.draw(myFont); 
+  if ( mode == "requesting") 
+  {
+  }
 }
 
 // This method is called when an OSC message is received
@@ -160,6 +163,14 @@ void oscEvent(OscMessage msg)
       //receivedChat = "";
       mode = "listening";
     }
+    if (status.equals("requesting"))
+    {
+      fader.changeColor(process_color);
+      // receivedPrompt = "";
+      //receivedChat = "";
+      mode = "requesting";
+    }
+    print(mode);
   }
   
   if (msg.checkAddrPattern("/quiet/"))

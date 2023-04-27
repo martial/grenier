@@ -31,6 +31,7 @@ nicolas/macos-x86_64
 
 #
 applis/
+server/build
 grenier-appli.sh
 
 # React

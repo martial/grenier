@@ -6,7 +6,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 from dotenv import load_dotenv
 from flask_scss import Scss
-from vosk import Model, KaldiRecognizer, SetLogLevel
+#from vosk import Model, KaldiRecognizer, SetLogLevel
 import threading
 from database import createDB, getDBConfig, getDBUpdate, updateDB, getDBTransConfig, updateTransDB
 import webbrowser
@@ -199,9 +199,11 @@ def call_openai_gpt(prompt):
 
     # Send the new status to Pde
     osc_address = "/status/"
-    full_reply_content = 'processing'
+    full_reply_content = 'requesting'
     osc_message = full_reply_content
     client.send_message(osc_address, osc_message)
+    full_reply_content = 'processing'
+    osc_message = full_reply_content
     transcription_client.send_message(osc_address, osc_message)
 
     # Append prompt to history
@@ -227,6 +229,11 @@ def call_openai_gpt(prompt):
         end_it = False
         return
         
+    osc_address = "/status/"
+    full_reply_content = 'processing'
+    osc_message = full_reply_content
+    client.send_message(osc_address, osc_message)
+
     # Process ChatGPT response, word to word
     collected_chunks = []
     collected_messages = []

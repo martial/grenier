@@ -31,6 +31,8 @@ boolean quiet = false;
 
 void setup()
 {
+  print("yo");
+  
   size(800, 600);
   
   json = loadJSONObject("server-config.json");
@@ -164,6 +166,7 @@ void oscEvent(OscMessage msg)
   
   if (msg.checkAddrPattern("/quiet/"))
   {
+    print("quiet");
     quiet = true;
     receivedChat = "Vous avez commencé à parler avant que je ne vous écoute, merci de marquer un silence";
   }

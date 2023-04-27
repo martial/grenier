@@ -62,6 +62,7 @@ def handle_speech_message(address, *args):
         endOpenai()
 
     if (status == "waiting" and started_on_processing and transcription != ''):
+        print("quiet")
         osc_address = "/quiet/"
         client.send_message(osc_address, "")
     
@@ -138,8 +139,8 @@ language = res["language"]
 openai.api_key = api_key
 state = None
 conversation_history = [{"role": "system", "content": gpt_role}]
-conversation_history.append([{"role": "system", "content": gpt_context}])
-conversation_history.append([{"role": "system", "content": gpt_action}])
+conversation_history.append({"role": "system", "content": gpt_context})
+conversation_history.append({"role": "system", "content": gpt_action})
 
 app = Flask(__name__)
 app.debug = True # needed to scss to compile
@@ -218,6 +219,7 @@ def call_openai_gpt(prompt):
             stream=True
         )
     except InvalidRequestError as e:
+        print(e)
         osc_message = ("InvalidRequestError — Tokens exceeeded").encode('utf-8')
         osc_address = "/chat/"
         client.send_message(osc_address, osc_message)

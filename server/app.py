@@ -61,10 +61,10 @@ def handle_speech_message(address, *args):
     if (transcription == "Stop"):
         endOpenai()
 
-    if (status == "waiting" and started_on_processing and transcription != ''):
-        print("quiet")
-        osc_address = "/quiet/"
-        client.send_message(osc_address, "")
+    # if (status == "waiting" and started_on_processing and transcription != ''):
+    #     print("quiet")
+    #     osc_address = "/quiet/"
+    #     client.send_message(osc_address, "")
     
     elif (status == "waiting" and not started_on_processing and transcription != ''):
 

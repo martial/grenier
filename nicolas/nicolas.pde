@@ -30,9 +30,7 @@ JSONObject json;
 boolean quiet = false;
 
 void setup()
-{
-  print("yo");
-  
+{  
   size(800, 600);
   
   json = loadJSONObject("server-config.json");

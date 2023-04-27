@@ -28,6 +28,11 @@ SpeechTranscription/DerivedData/**
 
 #nicolas pde
 nicolas/macos-x86_64
+
+#
+applis/
+grenier-appli.sh
+
 # React
 /node_modules/
 /build/

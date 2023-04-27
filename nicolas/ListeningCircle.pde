@@ -12,6 +12,8 @@ class ListeningCircle
   float smoothedVolume;
   float fade;
   float rotationSpeed = 0.01;
+  float scale;
+  color circleColor = color(255,255,255);
 
   ListeningCircle(String str)
   {
@@ -51,7 +53,7 @@ class ListeningCircle
     textAlign(CENTER);
 
     noFill();
-    stroke(255);
+    stroke(circleColor);
     strokeWeight(2);
 
     push();
@@ -91,7 +93,7 @@ class ListeningCircle
         rotate(theta + PI/2);
 
         noStroke();
-        fill(255);
+        fill(circleColor);
         text(currentChar, 0, 0);
 
         pop();

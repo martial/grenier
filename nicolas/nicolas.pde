@@ -16,7 +16,7 @@ float padding = 20;
 
 color listen_color = color(200, 200, 200);//152, 251, 152);
 color process_color = color(255, 255, 255);//216, 191, 216);
-
+color requesting_color = color(225, 225, 225);//216, 191, 216);
 String mode = "listening";
 
 BackgroundColorFader fader;
@@ -30,9 +30,9 @@ JSONObject json;
 boolean quiet = false;
 
 void setup()
-{  
+{
   size(800, 600);
-  
+
   json = loadJSONObject("server-config.json");
 
   String host = json.getString("ip_address");
@@ -79,13 +79,13 @@ void draw()
   if (receivedChat.equals("InvalidRequestError — Tokens exceeeded"))
   {
     receivedChat += ". Veuillez relancer le programme";
-    fill(255,0,0);
+    fill(255, 0, 0);
   }
   if (quiet)
   {
-    fill(255,165,0);
+    fill(255, 165, 0);
   }
-  
+
   String new_str = receivedChat;
 
   float max_height = height-padding-offset_y;
@@ -116,7 +116,7 @@ void draw()
   fill(0);
 
   if ( mode == "listening" || mode == "requesting" )
-    listen_circle.draw(myFont);    
+    listen_circle.draw(myFont);
 }
 
 // This method is called when an OSC message is received
@@ -151,14 +151,14 @@ void oscEvent(OscMessage msg)
     if (status.equals("processing"))
     {
       fader.changeColor(process_color);
-      
       mode = "processing";
     }
-     if (status.equals("requesting"))
+    if (status.equals("requesting"))
     {
-      //fader.changeColor(process_color);
+      fader.changeColor(requesting_color);
       listen_circle.rotationSpeed = 1.0;
       listen_circle.scale = 0.0;
+      listen_circle.circleColor = color(0, 0, 0);
       mode = "requesting";
     }
     if (status.equals("listening"))
@@ -166,12 +166,14 @@ void oscEvent(OscMessage msg)
       fader.changeColor(listen_color);
       listen_circle.rotationSpeed = 0.001;
       listen_circle.scale = 1.0;
+      listen_circle.circleColor = color(255, 255, 255);
+
       // receivedPrompt = "";
       //receivedChat = "";
       mode = "listening";
     }
   }
-  
+
   if (msg.checkAddrPattern("/quiet/"))
   {
     print("quiet");

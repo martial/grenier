@@ -27,6 +27,8 @@ AudioInput audioInput;
 
 JSONObject json;
 
+boolean quiet = false;
+
 void setup()
 {
   size(800, 600);
@@ -74,6 +76,16 @@ void draw()
   text("Chat :", padding, padding+offset_y);
   offset_y += fontsize*lineheight;
 
+  if (receivedChat.equals("InvalidRequestError — Tokens exceeeded"))
+  {
+    receivedChat += ". Veuillez relancer le programme";
+    fill(255,0,0);
+  }
+  if (quiet)
+  {
+    fill(255,165,0);
+  }
+  
   String new_str = receivedChat;
 
   float max_height = height-padding-offset_y;
@@ -101,6 +113,8 @@ void draw()
   // Display the received chat text on the screen
   text(wrappedText, padding, padding+offset_y);
 
+  fill(0);
+
   if ( mode == "listening")
     listen_circle.draw(myFont);    
 }
@@ -117,6 +131,7 @@ void oscEvent(OscMessage msg)
     catch (UnsupportedEncodingException e) {
       println("UnsupportedEncodingException: " + e.getMessage());
     }
+    quiet = false;
   }
 
   if (msg.checkAddrPattern("/chat/"))
@@ -145,6 +160,12 @@ void oscEvent(OscMessage msg)
       //receivedChat = "";
       mode = "listening";
     }
+  }
+  
+  if (msg.checkAddrPattern("/quiet/"))
+  {
+    quiet = true;
+    receivedChat = "Vous avez commencé à parler avant que je ne vous écoute, merci de marquer un silence";
   }
 }
 

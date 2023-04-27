@@ -1,4 +1,5 @@
 import openai
+from openai.error import InvalidRequestError
 import json
 from pythonosc import udp_client, dispatcher, osc_server
 import os
@@ -14,7 +15,6 @@ load_dotenv()
 
 with open("server-config.json", "r") as file:
     server_config = json.load(file)
-    print(server_config)
 
 # Set the IP address and port of the OSC server
 ip_address = server_config["ip_address"]
@@ -61,7 +61,11 @@ def handle_speech_message(address, *args):
     if (transcription == "Stop"):
         endOpenai()
 
-    if (status == "waiting" and not started_on_processing and transcription != ''):
+    if (status == "waiting" and started_on_processing and transcription != ''):
+        osc_address = "/quiet/"
+        client.send_message(osc_address, "")
+    
+    elif (status == "waiting" and not started_on_processing and transcription != ''):
 
         osc_message = transcription.encode('utf-8')
         osc_address = "/prompt/"
@@ -134,8 +138,8 @@ language = res["language"]
 openai.api_key = api_key
 state = None
 conversation_history = [{"role": "system", "content": gpt_role}]
-conversation_history = [{"role": "system", "content": gpt_context}]
-conversation_history = [{"role": "system", "content": gpt_action}]
+conversation_history.append([{"role": "system", "content": gpt_context}])
+conversation_history.append([{"role": "system", "content": gpt_action}])
 
 app = Flask(__name__)
 app.debug = True # needed to scss to compile
@@ -203,16 +207,24 @@ def call_openai_gpt(prompt):
     conversation_history.append({"role": "user", "content": prompt})
 
     # ChatGPT query
-    response = openai.ChatCompletion.create(
-        model="gpt-4",#"gpt-3.5-turbo",#
-        messages=conversation_history,
-        max_tokens=2048,
-        n=1,
-        stop=None,
-        temperature=gpt_temp,
-        stream=True
-    )
-
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",#gpt-4
+            messages=conversation_history,
+            max_tokens=2048,
+            n=1,
+            stop=None,
+            temperature=gpt_temp,
+            stream=True
+        )
+    except InvalidRequestError as e:
+        osc_message = ("InvalidRequestError — Tokens exceeeded").encode('utf-8')
+        osc_address = "/chat/"
+        client.send_message(osc_address, osc_message)
+        status = "will_waiting"
+        end_it = False
+        return
+        
     # Process ChatGPT response, word to word
     collected_chunks = []
     collected_messages = []
@@ -240,12 +252,6 @@ def call_openai_gpt(prompt):
     full_reply_content = ''.join([m.get('content', '') for m in collected_messages])
     conversation_history.append({"role": "assistant", "content": full_reply_content})
 
-    # status = "waiting"
-    # osc_address = "/status/"
-    # osc_message = 'listening'
-    # client.send_message(osc_address, osc_message)
-    # transcription_client.send_message(osc_address, osc_message)
-    
     status = "will_waiting"
     end_it = False
 

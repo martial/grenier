@@ -3,9 +3,13 @@ from openai.error import InvalidRequestError
 import json
 from pythonosc import udp_client, dispatcher, osc_server
 import os
+import subprocess
+
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
 from dotenv import load_dotenv
 from flask_scss import Scss
+import pyttsx3
+import re
 #from vosk import Model, KaldiRecognizer, SetLogLevel
 import threading
 from database import createDB, getDBConfig, getDBUpdate, updateDB, getDBTransConfig, updateTransDB
@@ -35,8 +39,12 @@ transcription_client.send_message(osc_address, osc_message)
 
 transcription = "";
 
+
+
 # Create the OSC server dispatcher and register the handler function
 
+def speak(text, language='fr'):
+    subprocess.run(["say", "-v", f"{language}", text])
 def sendTranscriptionConfig():
 
     trans_config = getDBTransConfig()
@@ -123,7 +131,7 @@ def start_osc_server():
 api_key = os.getenv("API_KEY")
 
 # Create database
-# createDB()
+#createDB()
 
 # Load config
 res = getDBConfig(True)
@@ -131,10 +139,13 @@ gpt_role = res["gpt_role"]
 gpt_context = res["gpt_context"]
 gpt_action = res["gpt_action"]
 gpt_temp = res["gpt_temp"]
+
 res = getDBTransConfig()
 transcription_silence = res["transcription_silence"]
 transcription_restart = res["transcription_restart"]
 language = res["language"]
+talk = res["talk"]
+model = res["model"]
 
 openai.api_key = api_key
 state = None
@@ -162,6 +173,9 @@ def call_openai_gpt(prompt):
     global gpt_role
     global gpt_context
     global gpt_action
+    global talk
+    global language
+    global model
 
     global gpt_temp
 
@@ -186,6 +200,12 @@ def call_openai_gpt(prompt):
         conversation_history.append({"role": "system", "content": gpt_context})
         conversation_history.append({"role": "system", "content": gpt_action})
 
+    res = getDBTransConfig()
+    if(res):
+        talk = res["talk"]
+        language = res["language"]
+        model = res["model"]
+        
     # We will go to processing mode now
     status = "processing"
 
@@ -209,10 +229,11 @@ def call_openai_gpt(prompt):
     # Append prompt to history
     conversation_history.append({"role": "user", "content": prompt})
 
+    print(model)
     # ChatGPT query
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",#gpt-4
+            model=model,#gpt-4
             messages=conversation_history,
             max_tokens=2048,
             n=1,
@@ -227,6 +248,20 @@ def call_openai_gpt(prompt):
         client.send_message(osc_address, osc_message)
         status = "will_waiting"
         end_it = False
+        conversation_history = []
+        conversation_history.append({"role": "system", "content": gpt_role})
+        conversation_history.append({"role": "system", "content": gpt_context})
+        conversation_history.append({"role": "system", "content": gpt_action})
+        call_openai_gpt(prompt)
+        return
+    except openai.errors.RateLimitError as e:
+        print(e)
+        osc_message = ("RateLimitError — Server is overloaded").encode('utf-8')
+        osc_address = "/chat/"
+        client.send_message(osc_address, osc_message)
+        status = "will_waiting"
+        end_it = False
+
         return
         
     osc_address = "/status/"
@@ -237,6 +272,8 @@ def call_openai_gpt(prompt):
     # Process ChatGPT response, word to word
     collected_chunks = []
     collected_messages = []
+    last_spoken_phrase = ""
+
     for chunk in response:
         collected_chunks.append(chunk)
         chunk_message = chunk['choices'][0]['delta']
@@ -247,6 +284,18 @@ def call_openai_gpt(prompt):
         # We stop the processing loop if we get a "stop" message
         if end_it: 
             break
+
+        
+        if(talk == 1):
+            phrases = re.split(r'[\.\?!]\s*', full_reply_content.strip())
+            if len(phrases) > 1 and phrases[-2] != last_spoken_phrase:
+                last_spoken_phrase = phrases[-2]
+                
+                voice = 'Allison' 
+                if language == 'fr':
+                    voice = 'Thomas'
+                speak(last_spoken_phrase, voice)  # Thomas is a French voice on macOS
+
 
         if full_reply_content:
 
@@ -270,10 +319,10 @@ def map_range(value, from_min, from_max, to_min, to_max):
 
 
 @app.route('/config')
-def config(language=None, gpt_role=None, gpt_context=None, gpt_action=None, gpt_temp=None, transcription_silence=None, transcription_restart=None):
+def config(model= None, talk = None, language=None, gpt_role=None, gpt_context=None, gpt_action=None, gpt_temp=None, transcription_silence=None, transcription_restart=None):
 
-    params_set = language and gpt_role and gpt_context and gpt_action and gpt_temp and transcription_silence and transcription_restart
-    request_set = request.args.get('language') and request.args.get('gpt_role')  and request.args.get('gpt_context')  and request.args.get('gpt_action') and request.args.get('gpt_temp') and request.args.get('transcription_silence') and request.args.get('transcription_restart')
+    params_set = model and talk and language and gpt_role and gpt_context and gpt_action and gpt_temp and transcription_silence and transcription_restart
+    request_set =  request.args.get('model') and request.args.get('talk') and request.args.get('language') and request.args.get('gpt_role')  and request.args.get('gpt_context')  and request.args.get('gpt_action') and request.args.get('gpt_temp') and request.args.get('transcription_silence') and request.args.get('transcription_restart')
     
     if not (params_set) :
         if not (request_set) :
@@ -287,6 +336,8 @@ def config(language=None, gpt_role=None, gpt_context=None, gpt_action=None, gpt_
             transcription_silence = res["transcription_silence"]
             transcription_restart = res["transcription_restart"]
             language = res["language"]
+            talk = res["talk"]
+            model = res["model"]
         else :
             gpt_role = request.args.get('gpt_role')
             gpt_context = request.args.get('gpt_context')
@@ -295,8 +346,12 @@ def config(language=None, gpt_role=None, gpt_context=None, gpt_action=None, gpt_
             transcription_silence = request.args.get('transcription_silence')
             transcription_restart = request.args.get('transcription_restart')
             language = request.args.get('language')
+            talk = request.args.get('talk')
+            model = request.args.get('model')
 
     return render_template('index.html', 
+        talk=talk,
+        model=model,
         language=language,
         gpt_role=gpt_role, 
         gpt_context=gpt_context, 
@@ -317,9 +372,10 @@ def submit_form():
     transcription_silence = float(request.form['transcription_silence'])
     transcription_restart = float(request.form['transcription_restart'])
     language = request.form['language']
-
+    talk = request.form['talk']
+    model = request.form['model']
     updateDB(gpt_role, gpt_context, gpt_action, gpt_temp)
-    updateTransDB(transcription_silence, transcription_restart, language)
+    updateTransDB(transcription_silence, transcription_restart, language, talk, model)
     sendTranscriptionConfig()
 
     return redirect(url_for("config"))#,gpt_role=gpt_role, gpt_temp=gpt_temp))
@@ -329,6 +385,7 @@ if __name__ == "__main__":
         
     if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
         start_osc_server()
+        
 
         # try:
         # finally:
@@ -337,5 +394,9 @@ if __name__ == "__main__":
 
     sendTranscriptionConfig()
     webbrowser.open('http://'+ip_address+':'+str(server_port)+'/config')
+    osc_address = "/status/"
+    full_reply_content = 'listening'
+    osc_message = full_reply_content
+    client.send_message(osc_address, osc_message)
     app.run(debug=True, host="0.0.0.0", port=server_port)
 

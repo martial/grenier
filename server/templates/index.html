@@ -23,6 +23,22 @@
                 </div>
 
                 <div class="input">
+                    <label for="talk">Talk </label>
+                    <select name="talk" id="talk" >
+                        <option value="1" {% if talk  %} selected {% endif %}>Yes</option>
+                        <option value="0" {% if not talk  %} selected {% endif %}>No</option>
+                    </select>
+                </div>
+
+                <div class="input">
+                    <label for="model">Model </label>
+                    <select name="model" id="model" >
+                        <option value="gpt-3.5-turbo" {% if model == 'gpt-3.5-turbo' %} selected {% endif %}>gpt-3.5-turbo</option>
+                        <option value="gpt-4" {% if model == 'gpt-4' %} selected {% endif %}>gpt-4</option>
+                    </select>
+                </div>
+
+                <div class="input">
                     <label for="gpt_role">Role</label>
                     <textarea id="gpt_role" name="gpt_role" rows="4" placeholder="À partir de maintenant tu parles comme..." required>{{ gpt_role }}</textarea>
                 </div>

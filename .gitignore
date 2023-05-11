@@ -25,6 +25,8 @@ node_modules/
 #SpeechTranscription
 SpeechTranscription/DerivedData/**
 !SpeechTranscription/DerivedData/SpeechTranscription/Build/Products/Debug/*
+SpeechTranscription2/DerivedData/**
+!SpeechTranscription2/DerivedData/SpeechTranscription2/Build/Products/Debug/*
 
 #nicolas pde
 nicolas/macos-x86_64

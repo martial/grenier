@@ -1,7 +1,7 @@
 <html>
   <head>
     <title>Config</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   </head>
   <body>
 
@@ -11,16 +11,54 @@
 
         <h1>GRENIER SERVER CONFIGURATION</h1>
 
-        <form method="POST" action="{{ url_for('submit_form') }}">
 
-            <div class="col">
-                <div class="input">
-                    <label for="language">Language</label>
-                    <select name="language" id="language" >
-                        <option value="fr" {% if language == 'fr' %} selected {% endif %}>Français</option>
-                        <option value="en" {% if language == 'en' %} selected {% endif %}>English</option>
-                    </select>
+        <div class="col">
+            
+            <form method="POST" action="{{ url_for('submit_form') }}">
+
+                <div class="row">
+                    <div class="input">
+                        <label for="language">Language</label>
+                        <select name="language" id="language" >
+                            <option value="fr" {% if language == 'fr' %} selected {% endif %}>Français</option>
+                            <option value="en" {% if language == 'en' %} selected {% endif %}>English</option>
+                        </select>
+                    </div>    
+                    <div class="input">
+                        <label for="gpt_temp">GPT Temperature <span class="hint">(min=0, max=1)</span></label>
+                        <input type="number" id="gpt_temp" name="gpt_temp" step=0.01 min=0 max=1 value="{{ gpt_temp }}" required>
+                    </div>            
                 </div>
+
+
+                <div class="row">
+                    <div class="input">
+                        <label for="talk">Talk </label>
+                        <select name="talk" id="talk" >
+                            <option value="1" {% if talk  %} selected {% endif %}>Yes</option>
+                            <option value="0" {% if not talk  %} selected {% endif %}>No</option>
+                        </select>
+                    </div>
+                    <div class="input">
+                        <label for="transcription_silence">Transcription Silence Time<span class="hint">(min=0.5, max=5)</span></label>
+                        <input type="number" id="transcription_silence" name="transcription_silence" step=0.01 min=0.5 max=5 value="{{ transcription_silence }}" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="input">
+                        <label for="model">Model </label>
+                        <select name="model" id="model" >
+                            <option value="gpt-3.5-turbo" {% if model == 'gpt-3.5-turbo' %} selected {% endif %}>gpt-3.5-turbo</option>
+                            <option value="gpt-4" {% if model == 'gpt-4' %} selected {% endif %}>gpt-4</option>
+                        </select>
+                    </div>
+                    <div class="input">
+                        <label for="transcription_restart">Transcription Restart Delay <span class="hint">(min=0.1, max=1)</span></label>
+                        <input type="number" id="transcription_restart" name="transcription_restart" step=0.01 min=0.1 max=1 value="{{ transcription_restart }}" required>
+                    </div>
+                </div>
+                
 
                 <div class="input">
                     <label for="gpt_role">Role</label>
@@ -36,31 +74,28 @@
                     <label for="gpt_action">Action</label>
                     <textarea id="gpt_action" name="gpt_action" rows="4" >{{ gpt_action }}</textarea>
                 </div>
-            </div>
 
-            <div class="col">
-                <div class="input">
-                    <label for="gpt_temp">GPT Temperature <span class="hint">(min=0, max=1)</span></label>
-                    <input type="number" id="gpt_temp" name="gpt_temp" step=0.01 min=0 max=1 value="{{ gpt_temp }}" required>
+                <div class="row">
+                    <div id="update_notice">Configuration updated</div>
+                    <input type="submit" value="Save">
                 </div>
 
-                <div class="input">
-                    <label for="transcription_silence">Transcription Silence Time<span class="hint">(min=0.5, max=5)</span></label>
-                    <input type="number" id="transcription_silence" name="transcription_silence" step=0.01 min=0.5 max=5 value="{{ transcription_silence }}" required>
-                </div>
+            </form>
 
-                <div class="input">
-                    <label for="transcription_restart">Transcription Restart Delay <span class="hint">(min=0.1, max=1)</span></label>
-                    <input type="number" id="transcription_restart" name="transcription_restart" step=0.01 min=0.1 max=1 value="{{ transcription_restart }}" required>
-                </div>
-            </div>
+        </div>
 
-            <div class="col">
-                <div id="update_notice">Configuration updated</div>
-            </div>
-            <input type="submit" value="Save">
-        </form>
 
+        <div class="col">
+            <form id="play" method="POST" action="{{ url_for('play') }}" class="{{ playing_mode }}">
+                <input type="submit" value="Play">
+            </form>
+            <form  id="pause"  method="POST" action="{{ url_for('pause') }}"  class="{{ playing_mode }}">
+                <input type="submit" value="Pause">
+            </form>
+            <form method="POST" action="{{ url_for('reset') }}">
+                <input type="submit" value="Reset history">
+            </form>
+        </div>
 
     </div>
 

@@ -13,13 +13,20 @@ def createDB() :
     # dbc.execute('ALTER TABLE config ADD gpt_context TEXT')
     # dbc.execute('ALTER TABLE config ADD gpt_action TEXT')
     # dbc.execute('UPDATE config SET gpt_context=?, gpt_action=?', ("", ""))
+    #dbc.execute('ALTER TABLE config ADD talk INTEGER')
+    # dbc.execute('ALTER TABLE config ADD model TEXT')
+    # dbc.execute('UPDATE config SET talk=?, model=?', (1,"gpt-4"))
+    # dbc.execute('ALTER TABLE config ADD playing_mode TEXT')
+    # dbc.execute('ALTER TABLE config ADD reset INTEGER')
+    # dbc.execute('UPDATE config SET playing_mode=?, reset=?', ("play",0))
+
     db.commit()
     db.close()
 
 def getDBConfig(reset_update=None):
     db = sqlite3.connect('database.db')
     dbc = db.cursor()
-    dbc.execute('SELECT gpt_role, gpt_context, gpt_action, gpt_temp, updated FROM config')
+    dbc.execute('SELECT gpt_role, gpt_context, gpt_action, gpt_temp, updated, talk FROM config')
     result = dbc.fetchone()
     if (reset_update):
         dbc.execute('UPDATE config SET updated=?',(0,))
@@ -62,18 +69,58 @@ def updateDB(gpt_role, gpt_context, gpt_action, gpt_temp):
 def getDBTransConfig():
     db = sqlite3.connect('database.db')
     dbc = db.cursor()
-    dbc.execute('SELECT transcription_silence, transcription_restart, language FROM config')
+    dbc.execute('SELECT transcription_silence, transcription_restart, language, talk, model FROM config')
     result = dbc.fetchone()
     db.close()
+
+    
     return {
         "transcription_silence" : result[0],
         "transcription_restart" : result[1],
         "language" : result[2],
-    }
+        "talk" : result[3],
+        "model" : result[4],
+    } 
 
-def updateTransDB(transcription_silence, transcription_restart, language):
+def updateTransDB(transcription_silence, transcription_restart, language, talk, model):
     db = sqlite3.connect('database.db')
     dbc = db.cursor()
-    dbc.execute('UPDATE config SET transcription_silence=?, transcription_restart=?, language=?', (transcription_silence, transcription_restart, language))
+    #print(transcription_silence, transcription_restart, language, talk)
+    dbc.execute('UPDATE config SET transcription_silence=?, transcription_restart=?, language=?, talk=?, model=?', (transcription_silence, transcription_restart, language, talk, model))
     db.commit()
     db.close()
+
+def resetDBModes():
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('UPDATE config SET playing_mode=?, reset=?, updated=?', ("play", 0, 0))
+    db.commit()
+    db.close()
+
+def setDBPlayingMode(playing_mode):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('UPDATE config SET playing_mode=?', (playing_mode,))
+    db.commit()
+    db.close()
+
+def getDBPlayingMode():
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('SELECT playing_mode FROM config')
+    result = dbc.fetchone()
+    return result[0]
+
+def setDBReset(reset):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('UPDATE config SET reset=?', (reset,))
+    db.commit()
+    db.close()
+
+def getDBReset():
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('SELECT reset FROM config')
+    result = dbc.fetchone()
+    return result[0]

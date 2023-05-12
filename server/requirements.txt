@@ -4,3 +4,4 @@ Flask
 python-dotenv
 Flask-Scss
 python-osc
+pyttsx3

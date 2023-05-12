@@ -9,32 +9,31 @@ class ListeningCircle
   float start_time;
   float start_volume;
   float end_volume;
-
   float smoothedVolume;
-
   float fade;
+  float rotationSpeed = 0.01;
+  float scale;
+  color circleColor = color(255,255,255);
 
   ListeningCircle(String str)
   {
     this.str = str;
-
     this.volume = 0;
     this.start_volume = 0;
     this.end_volume = 0;
-
     this.amp = 10;
-
     this.radius = width/12;
     this.fontsize = 16;
-
     this.fade = 0.1;
+    this.rotationSpeed = 0.01;
+     this.scale = 1.0;
   }
 
   void setVolume(float volume)
   {
     float alpha = 0.6;
     this.smoothedVolume = alpha * volume + (1 - alpha) * this.smoothedVolume;
-    this.volume =this.smoothedVolume;
+    this.volume =this.smoothedVolume  * this.scale;
   }
 
   void draw(PFont font)
@@ -46,14 +45,15 @@ class ListeningCircle
 
     this.radius = width/24 + this.volume*(width/24);
     this.fontsize = 16 + this.volume*(16);
-
-    float pct = (frameCount%360)/360.0;
+    
+    float fc = (float)frameCount * this.rotationSpeed;
+    float pct = (fc % 360)/360.0;
 
     textFont(font, this.fontsize);
     textAlign(CENTER);
 
     noFill();
-    stroke(255);
+    stroke(circleColor);
     strokeWeight(2);
 
     push();
@@ -93,7 +93,7 @@ class ListeningCircle
         rotate(theta + PI/2);
 
         noStroke();
-        fill(255);
+        fill(circleColor);
         text(currentChar, 0, 0);
 
         pop();

@@ -1,0 +1,130 @@
+html {
+	margin: 0;
+	padding: 0;
+	font-family: sans-serif;
+	font-size: 20px;
+	line-height: 1;
+}
+body {
+	margin: 0;
+	padding: 1rem;
+}
+#updated {
+	display: none;
+}
+#update_notice {
+	opacity: 0;
+	color: green;
+	margin-top: 1rem;
+}
+#update_notice.show {
+	opacity: 1;
+}
+#update_notice.hide {
+	opacity: 0;
+	transition: opacity ease-in-out 0.5s;
+}
+#container {
+	max-width: 1024px;
+    display: flex;
+    flex-wrap: wrap;
+}
+#container h1 {
+	font-size: 2rem;
+	line-height: 1;
+    width: 100%;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+form {
+	display: flex;
+	flex-wrap: wrap;
+}
+.col{
+	width: 48%;
+}
+.col form {
+	flex-grow: 0;
+	flex-shrink: 0;
+}
+.col form .row {
+	display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-grow: 0;
+	flex-shrink: 0;
+    width: 100%;
+}
+form .input {
+	margin-bottom: 1rem;
+    width: 100%;
+}
+.col .row .input {
+    width: 48%;
+}
+form label {
+	display: flex;
+	align-items: flex-start;
+	margin-bottom: 0.25rem;
+    white-space: nowrap;
+}
+form label .hint {
+	margin-left: 0.25rem;
+	font-size: 0.75rem;
+	line-height: 1;
+}
+form input, form select {
+	font-family: sans-serif;
+	font-size: 1rem;
+	line-height: 1.25;
+	width: 100%;
+	padding: 0.25rem;
+	box-sizing: border-box;
+	-webkit-appearance: none;
+	outline: none;
+	box-shadow: none;
+	border: 1px solid black;
+	border-radius: 0;
+}
+form textarea {
+	width: 100%;
+	padding: 0.25rem;
+	border: 1px solid black;
+	box-sizing: border-box;
+	font-family: sans-serif;
+	font-size: 1rem;
+	line-height: 1.25;
+}
+form input[type="submit"],
+.button {
+	background-color: black;
+	color: white;
+	border: 1px solid black;
+	box-shadow: none;
+	cursor: pointer;
+    width: 50%;
+}
+form input[type="submit"]:hover,
+.button:hover {
+	background-color: white;
+	color: black;
+}
+.col:nth-child(3) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+.col:nth-child(3) form {
+    width: 50%;
+}
+.col:nth-child(3) form input{
+    width: 100%;
+}
+#play.play input {
+	background-color: white;
+	color: black;
+}
+#pause.pause input {
+	background-color: white;
+	color: black;
+}

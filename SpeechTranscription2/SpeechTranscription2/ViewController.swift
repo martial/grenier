@@ -6,33 +6,66 @@
 //
 import Cocoa
 import AVFoundation
+import Foundation
 
 class ViewController: NSViewController {
 
+    let arguments = CommandLine.arguments
+
+    
     @IBOutlet weak var firstMicButton: NSPopUpButton!
-    @IBOutlet weak var secondMicButton: NSPopUpButton!
+    //@IBOutlet weak var secondMicButton: NSPopUpButton!
+    
+    /*
+    struct Config: Codable { var microphone: UInt32 }
+    var config = Config(microphone: 1000)
+    */
     
     var audioInputIds: [UInt32] = [];
 
     var transcription : Transcription?
-    var transcription2 : Transcription?
+    //var transcription2 : Transcription?
+    
+    var app_index = 0;
+    var app_index_str = "0";
 
-
+    
     override func viewDidLoad() {
         
         super.viewDidLoad()
-                
-        listAudioInputs();
         
-        transcription = Transcription(name:"channel 1", audio_input: audioInputIds[0]);
-        transcription2 = Transcription(name:"channel 2", audio_input: audioInputIds[0]);
+        for (index, argument) in arguments.enumerated() {
+            if let index = Int(argument)
+            {
+                app_index = index;
+                app_index_str = argument;
+            }
+        }
+        
+        /*
+        // Retrieve the index of the "--name" parameter
+        if let indexArg = arguments.firstIndex(of: "--args") {
+            // Retrieve the value following the "--name" parameter
+            if let index = Int(arguments[indexArg + 1]) { mic_index = index; }
+            print("Index: \(index)")
+        }
+        */
+        
+        listAudioInputs();
+        firstMicButton.selectItem(at: app_index)
+
+        transcription = Transcription(name:"channel 1", audio_input: audioInputIds[app_index], app_index: app_index_str);
+        //transcription2 = Transcription(name:"channel 2", audio_input: audioInputIds[0]);
+
 
         if let transcription = transcription {
             transcription.load()
         }
+        /*
         if let transcription2 = transcription2 {
             transcription2.load()
         }
+         */
     }
 
     @IBAction func firstMicButtonDidChange(_ sender: NSPopUpButton) {
@@ -41,21 +74,55 @@ class ViewController: NSViewController {
             print("Selected item: \(selectedItem.title)");
             print(sender.indexOfSelectedItem);
             
+            /*
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            
+            guard let executableURL = Bundle.main.executableURL else {
+                fatalError("Impossible d'obtenir le chemin de l'exécutable.")
+            }
+            
+            let applicationURL = executableURL.deletingLastPathComponent()
+            let fileURL = applicationURL.appendingPathComponent("config-speech.json")
+            print(fileURL.path)
+            */
+            
+            let fileManager = FileManager.default
+
+            
             if (sender.indexOfSelectedItem == sender.numberOfItems-1)
             {
                 if let transcription = transcription {
                     transcription.disable();
+                    //config.microphone = 1000;
                 }
             }
             else
             {
                 if let transcription = transcription {
                     transcription.setAudioInput(audio_input:audioInputIds[sender.indexOfSelectedItem]);
+                    //config.microphone = UInt32(sender.indexOfSelectedItem);
                 }
             }
+            
+        
+            /*
+            if let jsonData = try? encoder.encode(config) {
+                // Écrire le contenu JSON dans un fichier
+                let url = URL(fileURLWithPath: fileURL.path)
+                do {
+                    try jsonData.write(to: url)
+
+                } catch {
+                    // Handle error
+                    print("error writing");
+                }
+            }
+            */
         }
     }
     
+    /*
     @IBAction func secondMicButtonDidChange(_ sender: NSPopUpButton) {
         // Handle pop-up button selection changes
         if let selectedItem = secondMicButton.selectedItem {
@@ -76,6 +143,7 @@ class ViewController: NSViewController {
             }
         }
     }
+     */
     
     override var representedObject: Any? {
         didSet {
@@ -182,16 +250,16 @@ class ViewController: NSViewController {
                 print("- Stream ID: \(streamID)")
                 // Add items to the pop-up button
                 firstMicButton.addItem(withTitle: String(deviceName) + " — ID: " + String(streamID));
-                secondMicButton.addItem(withTitle: String(deviceName) + " — ID: " + String(streamID) );
+                //secondMicButton.addItem(withTitle: String(deviceName) + " — ID: " + String(streamID) );
                 
                 audioInputIds.append(UInt32(streamID));
             }
         }
         
         firstMicButton.addItem(withTitle: String("Disable"));
-        secondMicButton.addItem(withTitle: String("Disable"));
+        //secondMicButton.addItem(withTitle: String("Disable"));
         
         firstMicButton.selectItem(at: 0);
-        secondMicButton.selectItem(at: 0);
+        //secondMicButton.selectItem(at: 0);
     }
 }

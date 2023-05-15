@@ -36,9 +36,13 @@ class Transcription
     
     var audio_input : UInt32 = 0;
     
-    init(name: String, audio_input: UInt32)
+    var app_index : String = "0";
+
+    
+    init(name: String, audio_input: UInt32, app_index: String)
     {
         self.name = name;
+        self.app_index = app_index;
         
         var engine = AVAudioEngine()
         let inputNode: AVAudioInputNode = engine.inputNode
@@ -87,7 +91,8 @@ class Transcription
         
         self.oscServer.setHandler { message, timeTag in
 
-            if ( message.addressPattern == "/config/" )
+            if ( message.addressPattern.description == "/config/"
+                 || message.addressPattern.description == "/config/"+self.app_index+"/" )
             {
                 do {
                     
@@ -95,7 +100,7 @@ class Transcription
                     self.silence_timeout = Double(st)
                     self.restart_timeout = Double(rt)
                     self.language = lg
-                    
+                                        
                     self.restartAll()
                                                     
                 } catch {
@@ -103,7 +108,8 @@ class Transcription
                 }
                 
             }
-            else if ( message.addressPattern == "/stopped/" )
+            else if ( message.addressPattern.description == "/stopped/"
+                      || message.addressPattern.description == "/stopped/"+self.app_index+"/" )
             {
                 self.transcription = "";
                 self.stopRecording()
@@ -111,7 +117,8 @@ class Transcription
                     self.startRecording()
                 }
             }
-            else if ( message.addressPattern == "/status/" )
+            else if ( message.addressPattern.description == "/status/"
+                      || message.addressPattern.description == "/status/"+self.app_index+"/" )
             {
                 do {
                     
@@ -134,10 +141,13 @@ class Transcription
 
         }
         
+        var send_address = "/get-config/";
+        if (self.app_index != "0") { send_address += self.app_index; }
+        
         do { try self.oscServer.start() } catch { print(error) }
         try? self.oscClient.send(
             
-            .message("/get-config", values: []),
+            .message(send_address, values: []),
                 to: "localhost", // remote IP address or hostname
                 port: UInt16(server_port_client) // standard OSC port but can be changed
         )
@@ -215,8 +225,12 @@ class Transcription
                 
                 if (self.transcription.contains("Stop") || self.transcription.contains("stop"))
                 {
+                    
+                    var send_address = "/stop/";
+                    if (self.app_index != "0") { send_address += self.app_index; }
+                    
                     try? self.oscClient.send(
-                        .message("/stop", values: [1]),
+                        .message(send_address, values: [1]),
                             to: "localhost", // remote IP address or hostname
                         port: UInt16(self.server_port_client) // standard OSC port but can be changed
                     )
@@ -235,9 +249,13 @@ class Transcription
                 //if (!self.started_on_processing)
                 //{
                 
-                print("SEND SPEECH "+self.name+" ", self.transcription )
+                    print("SEND SPEECH "+self.name+" ", self.transcription )
+                    
+                    var send_address = "/speech/";
+                    if (self.app_index != "0") { send_address += self.app_index; }
+                
                     try? self.oscClient.send(
-                        .message("/speech", values: [self.transcription, self.started_on_processing]),// self.started_on_processing]),
+                        .message(send_address, values: [self.transcription, self.started_on_processing]),// self.started_on_processing]),
                             to: "localhost", // remote IP address or hostname
                         port: UInt16(self.server_port_client) // standard OSC port but can be changed
                     )
@@ -315,8 +333,11 @@ class Transcription
                 self.transcription = "";
                 self.stopRecording()
                             
+                var send_address = "/end-speech/";
+                if (self.app_index != "0") { send_address += self.app_index; }
+            
                 try? self.oscClient.send(
-                    .message("/end-speech", values: [self.started_on_processing]),
+                    .message(send_address, values: [self.started_on_processing]),
                         to: "localhost", // remote IP address or hostname
                     port: UInt16(self.server_port_client) // standard OSC port but can be changed
                 )

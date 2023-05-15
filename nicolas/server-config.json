@@ -1,9 +1,9 @@
 {
-    "ip_address" : "127.0.0.1",
-    "ports" : {
-        "server" : 8080,  
-        "server_to_pde" : 8000,  
-        "server_to_transcript" : 9001,
-        "transcript_to_server" : 9000  
-    }
+  "ip_address": "127.0.0.1",
+  "ports": {
+    "server": 8088,
+    "server_to_pde": 8000,
+    "server_to_transcript": 9001,
+    "transcript_to_server": 9000
+  }
 }

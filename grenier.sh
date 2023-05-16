@@ -1,8 +1,8 @@
 #!/bin/sh
 
+#copie de la font dans l'export d'application pde
 cp ./nicolas/Cogito-Regular-22.vlw ./nicolas/macos-x86_64/Cogito-Regular-22.vlw 
 cp ./server/server-config.json ./SpeechTranscription/DerivedData/SpeechTranscription/Build/Products/Debug/SpeechTranscription.app/Contents/Resources/server-config.json
-cp ./server/server-config.json ./SpeechTranscription2/DerivedData/SpeechTranscription2/Build/Products/Debug/SpeechTranscription2.app/Contents/Resources/server-config.json
 
 cp ./server/server-config.json ./nicolas/macos-x86_64/server-config.json
 cp ./server/server-config.json ./nicolas/server-config.json

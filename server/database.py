@@ -19,6 +19,9 @@ def createDB() :
     # dbc.execute('ALTER TABLE config ADD playing_mode TEXT')
     # dbc.execute('ALTER TABLE config ADD reset INTEGER')
     # dbc.execute('UPDATE config SET playing_mode=?, reset=?', ("play",0))
+    #dbc.execute('ALTER TABLE config ADD mic_index_1 INTEGER')
+    #dbc.execute('ALTER TABLE config ADD mic_index_2 INTEGER')
+    #dbc.execute('UPDATE config SET mic_index_1=?, mic_index_2=?', (0,0))
 
     db.commit()
     db.close()
@@ -69,17 +72,18 @@ def updateDB(gpt_role, gpt_context, gpt_action, gpt_temp):
 def getDBTransConfig():
     db = sqlite3.connect('database.db')
     dbc = db.cursor()
-    dbc.execute('SELECT transcription_silence, transcription_restart, language, talk, model FROM config')
+    dbc.execute('SELECT transcription_silence, transcription_restart, language, talk, mic_index_1, mic_index_2, model FROM config')
     result = dbc.fetchone()
     db.close()
-
     
     return {
         "transcription_silence" : result[0],
         "transcription_restart" : result[1],
         "language" : result[2],
         "talk" : result[3],
-        "model" : result[4],
+        "mic_index_1" : result[4],
+        "mic_index_2" : result[5],
+        "model" : result[6],
     } 
 
 def updateTransDB(transcription_silence, transcription_restart, language, talk, model):
@@ -124,3 +128,17 @@ def getDBReset():
     dbc.execute('SELECT reset FROM config')
     result = dbc.fetchone()
     return result[0]
+
+def setDBMicIndex1(mic_index):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('UPDATE config SET mic_index_1=?', (mic_index,))
+    db.commit()
+    db.close()
+
+def setDBMicIndex2(mic_index):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('UPDATE config SET mic_index_2=?', (mic_index,))
+    db.commit()
+    db.close()

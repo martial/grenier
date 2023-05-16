@@ -34,22 +34,27 @@ class Transcription
     
     var name = "";
     
-    var audio_input : UInt32 = 0;
-    
-    var app_index : String = "0";
+    var mic_index : Int = 0;
+    var audio_input_ids: [UInt32] = [];
 
-    
-    init(name: String, audio_input: UInt32, app_index: String)
+    var app_index : String = "1";
+
+    var mic_button : NSPopUpButton?
+
+    init(name: String, audio_input_ids: [UInt32], app_index: String, mic_button: NSPopUpButton)
     {
         self.name = name;
         self.app_index = app_index;
+        self.audio_input_ids = audio_input_ids;
+        
+        self.mic_button = mic_button;
         
         var engine = AVAudioEngine()
         let inputNode: AVAudioInputNode = engine.inputNode
         // get the low level input audio unit from the engine:
         guard let inputUnit: AudioUnit = inputNode.audioUnit else { return }
         // use core audio low level call to set the input device:
-        var inputDeviceID: AudioDeviceID = audio_input  // replace with actual, dynamic value
+        var inputDeviceID: AudioDeviceID = audio_input_ids[mic_index]  // replace with actual, dynamic value
         AudioUnitSetProperty(
             inputUnit, kAudioOutputUnitProperty_CurrentDevice,
             kAudioUnitScope_Global, 0, &inputDeviceID, UInt32(MemoryLayout<AudioDeviceID>.size))
@@ -67,7 +72,11 @@ class Transcription
             let json = try JSONSerialization.jsonObject(with: data, options: [])
             if let dictionary = json as? [String: Any] {
                 
-                if let ports = dictionary["ports"] as? [String: Int]
+                
+                var port_id = "ports";
+                if (app_index != "1") { port_id += app_index }
+
+                if let ports = dictionary[port_id] as? [String: Int]
                 {
                     if let spc = ports["transcript_to_server"] as? Int {
                         server_port_client = spc;
@@ -91,16 +100,16 @@ class Transcription
         
         self.oscServer.setHandler { message, timeTag in
 
-            if ( message.addressPattern.description == "/config/"
-                 || message.addressPattern.description == "/config/"+self.app_index+"/" )
+            if ( message.addressPattern.description == "/config/" )
             {
                 do {
                     
-                    let (st, rt, lg) = try message.values.masked(Float.self, Float.self, String.self)
+                    let (st, rt, lg, mi) = try message.values.masked(Float.self, Float.self, String.self, Int.self)
                     self.silence_timeout = Double(st)
                     self.restart_timeout = Double(rt)
                     self.language = lg
-                                        
+                    self.mic_index = mi
+                                                            
                     self.restartAll()
                                                     
                 } catch {
@@ -108,8 +117,7 @@ class Transcription
                 }
                 
             }
-            else if ( message.addressPattern.description == "/stopped/"
-                      || message.addressPattern.description == "/stopped/"+self.app_index+"/" )
+            else if ( message.addressPattern.description == "/stopped/" )
             {
                 self.transcription = "";
                 self.stopRecording()
@@ -117,8 +125,7 @@ class Transcription
                     self.startRecording()
                 }
             }
-            else if ( message.addressPattern.description == "/status/"
-                      || message.addressPattern.description == "/status/"+self.app_index+"/" )
+            else if ( message.addressPattern.description == "/status/"  )
             {
                 do {
                     
@@ -142,8 +149,6 @@ class Transcription
         }
         
         var send_address = "/get-config/";
-        if (self.app_index != "0") { send_address += self.app_index; }
-        
         do { try self.oscServer.start() } catch { print(error) }
         try? self.oscClient.send(
             
@@ -151,7 +156,6 @@ class Transcription
                 to: "localhost", // remote IP address or hostname
                 port: UInt16(server_port_client) // standard OSC port but can be changed
         )
-        
 
         restartAll()
     }
@@ -170,6 +174,8 @@ class Transcription
         {
             speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
         }
+        
+        setAudioInput(audio_input_index:self.mic_index)
                 
         SFSpeechRecognizer.requestAuthorization { authStatus in
             OperationQueue.main.addOperation {
@@ -220,15 +226,11 @@ class Transcription
             if let result = result
             {
                 self.transcription = result.bestTranscription.formattedString
-                                   
-                //print(self.transcription)
-                
+                                                   
                 if (self.transcription.contains("Stop") || self.transcription.contains("stop"))
                 {
                     
                     var send_address = "/stop/";
-                    if (self.app_index != "0") { send_address += self.app_index; }
-                    
                     try? self.oscClient.send(
                         .message(send_address, values: [1]),
                             to: "localhost", // remote IP address or hostname
@@ -252,8 +254,6 @@ class Transcription
                     print("SEND SPEECH "+self.name+" ", self.transcription )
                     
                     var send_address = "/speech/";
-                    if (self.app_index != "0") { send_address += self.app_index; }
-                
                     try? self.oscClient.send(
                         .message(send_address, values: [self.transcription, self.started_on_processing]),// self.started_on_processing]),
                             to: "localhost", // remote IP address or hostname
@@ -334,8 +334,6 @@ class Transcription
                 self.stopRecording()
                             
                 var send_address = "/end-speech/";
-                if (self.app_index != "0") { send_address += self.app_index; }
-            
                 try? self.oscClient.send(
                     .message(send_address, values: [self.started_on_processing]),
                         to: "localhost", // remote IP address or hostname
@@ -368,14 +366,49 @@ class Transcription
         self.silenceTimer?.invalidate()
     }
     
-    func setAudioInput(audio_input: UInt32)
+    func setAudioInput(audio_input_index: Int)
     {
-        self.transcription = "";
-        self.stopRecording()
-        self.audio_input = audio_input;
-        Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
-            self.startRecording();
+        self.mic_index = audio_input_index;
+        
+        if (audio_input_index == -1)
+        {
+            self.disable();
+            if let mic_button = self.mic_button { mic_button.selectItem(at: (self.audio_input_ids.count)) }
         }
+        else
+        {
+            
+            self.transcription = "";
+            self.stopRecording()
+            if let mic_button = self.mic_button { mic_button.selectItem(at: self.mic_index) }
+
+            print("AUDIO ID")
+            print(self.audio_input_ids[self.mic_index])
+
+            var engine = AVAudioEngine()
+            let inputNode: AVAudioInputNode = engine.inputNode
+            // get the low level input audio unit from the engine:
+            guard let inputUnit: AudioUnit = inputNode.audioUnit else { return }
+            // use core audio low level call to set the input device:
+            var inputDeviceID: AudioDeviceID = audio_input_ids[mic_index]  // replace with actual, dynamic value
+            AudioUnitSetProperty(
+                inputUnit, kAudioOutputUnitProperty_CurrentDevice,
+                kAudioUnitScope_Global, 0, &inputDeviceID, UInt32(MemoryLayout<AudioDeviceID>.size))
+            
+            Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
+                self.startRecording();
+                print("start recording")
+            }
+            
+        }
+
+        
+        var send_address = "/mic-index/";
+        try? self.oscClient.send(
+            .message(send_address, values: [self.mic_index]),
+                to: "localhost", // remote IP address or hostname
+            port: UInt16(self.server_port_client) // standard OSC port but can be changed
+        )
     }
     
     func disable()

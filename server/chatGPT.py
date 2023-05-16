@@ -5,14 +5,15 @@ import subprocess
 
 class chatGPT:
 
-    #transcription = ""
-
     conversation_history = []
     transcription = ""
     end_it = False
     status = "waiting"
+    class_id = 0
 
-    def __init__(self, ip_address, transcript_port_client):
+    def __init__(self, ip_address, transcript_port_client, id):
+
+        self.class_id = id
         self.ip_address = ip_address
         self.transcript_port_client = transcript_port_client
         self.transcription_client = udp_client.SimpleUDPClient(ip_address, transcript_port_client)
@@ -64,9 +65,15 @@ class chatGPT:
     
     def speak(self, text, language='fr'):
         subprocess.run(["say", "-v", f"{language}", text])
-    
+
+
     def callOpenAI(self, prompt, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode, talk, send_to_pde, pde_client):
 
+        if playing_mode == "pause" :
+            return
+        if prompt == '' :
+            return
+    
         if self.getStatus() == "processing":
             return
         if self.getStatus() == "will_waiting":
@@ -74,7 +81,7 @@ class chatGPT:
         
         self.setStatus("processing")
     
-        print("REQUETTE "+prompt)
+        print("REQUETTE "+str(self.class_id)+" "+prompt)
 
         if (send_to_pde):
             osc_address = '/chat/'

@@ -5,5 +5,9 @@
     "server_to_pde": 8000,
     "server_to_transcript": 9001,
     "transcript_to_server": 9000
+  },
+  "ports2": {
+    "server_to_transcript": 9003,
+    "transcript_to_server": 9002
   }
 }

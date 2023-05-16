@@ -21,13 +21,13 @@ class ViewController: NSViewController {
     var config = Config(microphone: 1000)
     */
     
-    var audioInputIds: [UInt32] = [];
+    var audio_input_ids: [UInt32] = [];
 
     var transcription : Transcription?
     //var transcription2 : Transcription?
     
-    var app_index = 0;
-    var app_index_str = "0";
+    var app_index = 1;
+    var app_index_str = "1";
 
     
     override func viewDidLoad() {
@@ -52,10 +52,9 @@ class ViewController: NSViewController {
         */
         
         listAudioInputs();
-        firstMicButton.selectItem(at: app_index)
 
-        transcription = Transcription(name:"channel 1", audio_input: audioInputIds[app_index], app_index: app_index_str);
-        //transcription2 = Transcription(name:"channel 2", audio_input: audioInputIds[0]);
+        transcription = Transcription(name:"channel 1", audio_input_ids: audio_input_ids, app_index: app_index_str, mic_button: firstMicButton);
+        //transcription2 = Transcription(name:"channel 2", audio_input: audioInputIds);
 
 
         if let transcription = transcription {
@@ -93,14 +92,14 @@ class ViewController: NSViewController {
             if (sender.indexOfSelectedItem == sender.numberOfItems-1)
             {
                 if let transcription = transcription {
-                    transcription.disable();
+                    transcription.setAudioInput(audio_input_index:-1);
                     //config.microphone = 1000;
                 }
             }
             else
             {
                 if let transcription = transcription {
-                    transcription.setAudioInput(audio_input:audioInputIds[sender.indexOfSelectedItem]);
+                    transcription.setAudioInput(audio_input_index:sender.indexOfSelectedItem);
                     //config.microphone = UInt32(sender.indexOfSelectedItem);
                 }
             }
@@ -138,7 +137,7 @@ class ViewController: NSViewController {
             else
             {
                 if let transcription2 = transcription2 {
-                    transcription2.setAudioInput(audio_input:audioInputIds[sender.indexOfSelectedItem]);
+                    transcription2.setAudioInput(audio_input_index:sender.indexOfSelectedItem);
                 }
             }
         }
@@ -252,7 +251,7 @@ class ViewController: NSViewController {
                 firstMicButton.addItem(withTitle: String(deviceName) + " — ID: " + String(streamID));
                 //secondMicButton.addItem(withTitle: String(deviceName) + " — ID: " + String(streamID) );
                 
-                audioInputIds.append(UInt32(streamID));
+                audio_input_ids.append(UInt32(streamID));
             }
         }
         

@@ -128,3 +128,22 @@ form input[type="submit"]:hover,
 	background-color: white;
 	color: black;
 }
+
+#pause.pause input {
+	background-color: white;
+	color: black;
+}
+
+#toggle-listen-1 input,
+#toggle-listen-2 input {
+	background-color: black;
+	color: white;
+	text-align: center;
+	cursor: pointer
+}
+
+#toggle-listen-1 input:hover,
+#toggle-listen-2 input:hover {
+	background-color: white;
+	color: black;
+}

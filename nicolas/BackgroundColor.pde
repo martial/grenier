@@ -31,6 +31,11 @@ class BackgroundColorFader
       float newLum = lum + 20 * cos(PI * t);
       currentColor = color(hue(currentColor), saturation(currentColor), constrain(newLum, 0, 100));
     }
-    background(currentColor);
+    noStroke();
+    fill(currentColor);
+    rect(0,0,width/2, height);
   }
 }
+
+
+

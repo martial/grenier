@@ -59,6 +59,15 @@
                     </div>
                 </div>
                 
+                <div class="row">
+                    <div class="input">
+                        <label for="toggle_listen">Toggle Listen </label>
+                        <select name="toggle_listen" id="toggle_listen" >
+                            <option value="1" {% if toggle_listen  %} selected {% endif %}>Yes</option>
+                            <option value="0" {% if not toggle_listen  %} selected {% endif %}>No</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div class="input">
                     <label for="gpt_role">Role</label>
@@ -89,11 +98,17 @@
             <form id="play" method="POST" action="{{ url_for('play') }}" class="{{ playing_mode }}">
                 <input type="submit" value="Play">
             </form>
-            <form  id="pause"  method="POST" action="{{ url_for('pause') }}"  class="{{ playing_mode }}">
+            <form  id="pause" method="POST" action="{{ url_for('pause') }}"  class="{{ playing_mode }}">
                 <input type="submit" value="Pause">
             </form>
             <form method="POST" action="{{ url_for('reset') }}">
                 <input type="submit" value="Reset history">
+            </form>
+            <form id="toggle-listen-1" >
+                <input id="toggle-listen-input-1" value="Toggle listen 1">
+            </form>
+            <form id="toggle-listen-2" >
+                <input id="toggle-listen-input-2" value="Toggle listen 2">
             </form>
         </div>
 
@@ -109,6 +124,54 @@
                 document.getElementById("update_notice").classList.remove("show");
             }, 2000);
         }
+
+        document.getElementById("toggle-listen-input-1").addEventListener('mousedown', function()
+        {
+            console.log("down");
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/toggle_listen_1', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) { console.log(xhr.responseText); }
+            };
+            xhr.send(JSON.stringify({ data: "on" }));
+        });
+
+        document.getElementById("toggle-listen-input-1").addEventListener('mouseup', function()
+        {
+            console.log("up");
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/toggle_listen_1', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) { console.log(xhr.responseText); }
+            };
+            xhr.send(JSON.stringify({ data: "off" }));
+        });
+
+        document.getElementById("toggle-listen-input-2").addEventListener('mousedown', function()
+        {
+            console.log("down");
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/toggle_listen_2', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) { console.log(xhr.responseText); }
+            };
+            xhr.send(JSON.stringify({ data: "on" }));
+        });
+        
+        document.getElementById("toggle-listen-input-2").addEventListener('mouseup', function()
+        {
+            console.log("up");
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/toggle_listen_2', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) { console.log(xhr.responseText); }
+            };
+            xhr.send(JSON.stringify({ data: "off" }));
+        });
     </script>
   </body>
 </html>

@@ -2,12 +2,13 @@
   "ip_address": "127.0.0.1",
   "ports": {
     "server": 8088,
-    "server_to_pde": 8000,
+    "server_to_pde": 9002,
     "server_to_transcript": 9001,
     "transcript_to_server": 9000
   },
   "ports2": {
-    "server_to_transcript": 9003,
-    "transcript_to_server": 9002
+    "server_to_pde": 9005,
+    "server_to_transcript": 9004,
+    "transcript_to_server": 9003
   }
 }

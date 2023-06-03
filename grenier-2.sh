@@ -16,15 +16,15 @@ open ./SpeechTranscription2/DerivedData/SpeechTranscription2/Build/Products/Debu
 open ./SpeechTranscription2/DerivedData/SpeechTranscription2/Build/Products/Debug/SpeechTranscription2-2.app --args 2
 
 # execution de l'application pde
-open ./nicolas/macos-x86_64/nicolas.app
+#open ./nicolas/macos-x86_64/nicolas.app
 
-cd ./server 
-source venv/bin/activate
-python app.py
+#cd ./server 
+#source venv/bin/activate
+#python app.py
 
 # recuperation des pids pour kill les app lorsque que l'on quitte le terminal
-pid1=$(pgrep -d";" -f "SpeechTranscription2");
-pid2=$(pgrep -f "nicolas")
-trap 'kill $pid1; $pid2; exit' INT
+#pid1=$(pgrep -d";" -f "SpeechTranscription2");
+#pid2=$(pgrep -f "nicolas")
+#trap 'kill $pid1; $pid2; exit' INT
 
-while true; do sleep 1; done
+#while true; do sleep 1; done

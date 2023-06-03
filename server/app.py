@@ -25,13 +25,14 @@ with open("server-config.json", "r") as file:
 ip_address = server_config["ip_address"]
 server_port = server_config["ports"]["server"]
 pde_port = server_config["ports"]["server_to_pde"]
+pde_port2 = server_config["ports2"]["server_to_pde"]
 transcript_port_client = server_config["ports"]["server_to_transcript"]
 transcript_port_server = server_config["ports"]["transcript_to_server"]
 transcript_port_client2 = server_config["ports2"]["server_to_transcript"]
 transcript_port_server2 = server_config["ports2"]["transcript_to_server"]
 
 # Create database
-# createDB()
+#createDB()
 
 # Load config
 res = getDBConfig(True)
@@ -45,6 +46,7 @@ transcription_silence = res["transcription_silence"]
 transcription_restart = res["transcription_restart"]
 language = res["language"]
 talk = res["talk"]
+toggle_listen = res["toggle_listen"]
 model = res["model"]
 
 resetDBModes()
@@ -60,13 +62,28 @@ gpt2.appendHistory({"role": "system", "content": gpt_action})
 
 # Create an OSC client
 client = udp_client.SimpleUDPClient(ip_address, pde_port)
-
-osc_address = "/status/"
-osc_message = 'listening'
-client.send_message(osc_address, osc_message)
-gpt.sendStatusMessage(osc_message)
+client2 = udp_client.SimpleUDPClient(ip_address, pde_port2)
 
 playing_mode = "play"
+playing_mode_2 = "play"
+
+if (toggle_listen == 1):
+    setDBPlayingMode("pause")
+    playing_mode = "pause"
+    playing_mode_2 = "pause"
+    osc_address = "/status/"
+    osc_message = 'pause'
+    client.send_message(osc_address, osc_message)
+    client2.send_message(osc_address, osc_message)
+    gpt.sendStatusMessage(osc_message)
+    gpt2.sendStatusMessage(osc_message)
+else:
+    osc_address = "/status/"
+    osc_message = 'listening'
+    client.send_message(osc_address, osc_message)
+    client2.send_message(osc_address, osc_message)
+    gpt.sendStatusMessage(osc_message)
+    gpt2.sendStatusMessage(osc_message)
 
 # Create the OSC server dispatcher and register the handler function
 
@@ -119,7 +136,7 @@ def handle_speech_message2(address, *args):
     
     global gpt2
 
-    if ( playing_mode == "pause" ):
+    if ( playing_mode_2 == "pause" ):
         return
 
     transcription = str(args[0])
@@ -131,11 +148,15 @@ def handle_speech_message2(address, *args):
     elif (gpt2.getStatus() == "waiting" and not started_on_processing and transcription != ''):
         osc_message = transcription.encode('utf-8')
         osc_address = "/prompt/"
-        client.send_message(osc_address, osc_message)
+        client2.send_message(osc_address, osc_message)
 
 def handle_stop_message(address, *args):
 
     global gpt
+
+    if ( playing_mode == "pause" ):
+        return
+
     if ( gpt.getStatus() == "processing"):
         gpt.setEndIt(True)
         osc_address = "/stopped/"
@@ -144,6 +165,10 @@ def handle_stop_message(address, *args):
 def handle_stop_message2(address, *args):
 
     global gpt2
+
+    if ( playing_mode_2 == "pause" ):
+        return
+
     if ( gpt2.getStatus() == "processing"):
         gpt2.setEndIt(True)
         osc_address = "/stopped/"
@@ -154,6 +179,8 @@ def handle_end_speech_message(address, *args):
 
     global gpt
     global playing_mode
+
+    print(1, playing_mode)
 
     if ( playing_mode == "pause" ):
         return
@@ -171,15 +198,19 @@ def handle_end_speech_message(address, *args):
         gpt.setStatus("waiting")
         osc_address = "/status/"
         osc_message = 'listening'
+        if (playing_mode == "pause"):
+           osc_message = 'pause'
         client.send_message(osc_address, osc_message)
         gpt.sendStatusMessage(osc_message)
 
 def handle_end_speech_message2(address, *args):
 
     global gpt2
-    global playing_mode
+    global playing_mode_2
 
-    if ( playing_mode == "pause" ):
+    print(2, playing_mode_2)
+
+    if ( playing_mode_2 == "pause" ):
         return
     
     started_on_processing = (bool(args[0]))
@@ -187,7 +218,7 @@ def handle_end_speech_message2(address, *args):
 
     # Traitement du message OSC reçu
     if (gpt2.getStatus() == "waiting" and not started_on_processing and transcription != ''):
-        gpt2.callOpenAI(transcription, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode, False, False, client)
+        gpt2.callOpenAI(transcription, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode_2, False, True, client2)
     
     gpt2.clearTranscription()
 
@@ -195,7 +226,9 @@ def handle_end_speech_message2(address, *args):
         gpt2.setStatus("waiting")
         osc_address = "/status/"
         osc_message = 'listening'
-        client.send_message(osc_address, osc_message)
+        if (playing_mode_2 == "pause"):
+           osc_message = 'pause'
+        client2.send_message(osc_address, osc_message)
         gpt2.sendStatusMessage(osc_message)
 
 
@@ -245,46 +278,74 @@ def start_parameter_loop():
     global gpt
 
     global playing_mode
+    global playing_mode_2
     global gpt_role
     global gpt_context
     global gpt_action
     global gpt_temp
     global talk
+    global toggle_listen
     global language
     global model
 
     def run_job():
 
         global playing_mode
+        global playing_mode_2
 
         while True:
 
-            c_playing_mode = getDBPlayingMode()
+            c_playing_mode = getDBPlayingMode1()
+            c_playing_mode_2 = getDBPlayingMode2()
 
             if ( playing_mode == "play" and c_playing_mode == "pause" ):
 
-                gpt.setStatus("waiting")
-                gpt.clearTranscription()
-                gpt.setEndIt(False)
-                gpt2.setStatus("waiting")
-                gpt2.clearTranscription()
-                gpt2.setEndIt(False)
+                if gpt.getStatus() == "listening" :
+                    gpt.setStatus("waiting")
+                    gpt.clearTranscription()
+                    gpt.setEndIt(True)
 
                 osc_address = "/status/"
                 osc_message = 'pause'
                 client.send_message(osc_address, osc_message)
                 gpt.sendStatusMessage(osc_message)
-                gpt2.sendStatusMessage(osc_message)
 
                 playing_mode = c_playing_mode
+
+            if ( playing_mode_2 == "play" and c_playing_mode_2 == "pause" ):
+
+                if gpt.getStatus() == "listening" :
+                    gpt2.setStatus("waiting")
+                    gpt2.clearTranscription()
+                    gpt2.setEndIt(True)
+
+                osc_address = "/status/"
+                osc_message = 'pause'
+                client2.send_message(osc_address, osc_message)
+                gpt2.sendStatusMessage(osc_message)
+
+                playing_mode_2 = c_playing_mode_2
 
             if ( playing_mode == "pause" and c_playing_mode == "play" ):
+
                 osc_address = "/status/"
                 osc_message = 'listening'
+                gpt.setEndIt(False)
+
                 client.send_message(osc_address, osc_message)
                 gpt.sendStatusMessage(osc_message)
-                gpt2.sendStatusMessage(osc_message)
                 playing_mode = c_playing_mode
+
+            if ( playing_mode_2 == "pause" and c_playing_mode_2 == "play" ):
+
+                osc_address = "/status/"
+                osc_message = 'listening'
+                gpt2.setEndIt(False)
+
+                client2.send_message(osc_address, osc_message)
+                gpt2.sendStatusMessage(osc_message)
+
+                playing_mode_2 = c_playing_mode_2
 
             # Check if config or history should be updated (changes from html form)
             res = getDBUpdate()
@@ -316,6 +377,7 @@ def start_parameter_loop():
             res = getDBTransConfig()
             if(res):
                 talk = res["talk"]
+                toggle_listen = res["toggle_listen"]
                 language = res["language"]
                 model = res["model"]
 
@@ -329,10 +391,10 @@ app.debug = True # needed to scss to compile
 # Scss(app, static_dir='static/css/', asset_dir='static/scss/')
 
 @app.route('/config')
-def config(model= None, talk = None, language=None, gpt_role=None, gpt_context=None, gpt_action=None, gpt_temp=None, transcription_silence=None, transcription_restart=None, playing_mode=None):
+def config(model= None, talk = None, toggle_listen = None, language=None, gpt_role=None, gpt_context=None, gpt_action=None, gpt_temp=None, transcription_silence=None, transcription_restart=None, playing_mode=None, playing_mode_2=None):
 
-    params_set = model and talk and language and gpt_role and gpt_context and gpt_action and gpt_temp and transcription_silence and transcription_restart
-    request_set =  request.args.get('model') and request.args.get('talk') and request.args.get('language') and request.args.get('gpt_role')  and request.args.get('gpt_context')  and request.args.get('gpt_action') and request.args.get('gpt_temp') and request.args.get('transcription_silence') and request.args.get('transcription_restart')
+    params_set = model and talk and toggle_listen and language and gpt_role and gpt_context and gpt_action and gpt_temp and transcription_silence and transcription_restart
+    request_set =  request.args.get('model') and request.args.get('talk') and request.args.get('toggle_listen') and request.args.get('language') and request.args.get('gpt_role')  and request.args.get('gpt_context')  and request.args.get('gpt_action') and request.args.get('gpt_temp') and request.args.get('transcription_silence') and request.args.get('transcription_restart')
     
     if not (params_set) :
         if not (request_set) :
@@ -347,6 +409,7 @@ def config(model= None, talk = None, language=None, gpt_role=None, gpt_context=N
             transcription_restart = res["transcription_restart"]
             language = res["language"]
             talk = res["talk"]
+            toggle_listen = res["toggle_listen"]
             model = res["model"]
         else :
             gpt_role = request.args.get('gpt_role')
@@ -357,10 +420,19 @@ def config(model= None, talk = None, language=None, gpt_role=None, gpt_context=N
             transcription_restart = request.args.get('transcription_restart')
             language = request.args.get('language')
             talk = request.args.get('talk')
+            toggle_listen = request.args.get('toggle_listen')
             model = request.args.get('model')
    
     if not (playing_mode) and not (request.args.get('playing_mode')):
-        playing_mode = getDBPlayingMode()
+        playing_mode = getDBPlayingMode1()
+
+    if not (playing_mode_2) and not (request.args.get('playing_mode_2')):
+        playing_mode_2 = getDBPlayingMode2()
+
+    if (toggle_listen==1):
+        playing_mode = "pause"
+        playing_mode_2 = "pause"
+        setDBPlayingMode("pause")
 
     return render_template('index.html', 
         gpt_role=gpt_role, 
@@ -372,8 +444,10 @@ def config(model= None, talk = None, language=None, gpt_role=None, gpt_context=N
         transcription_restart=transcription_restart,
         language=language,
         talk=talk,
+        toggle_listen=toggle_listen,
         model=model,
-        playing_mode=playing_mode
+        playing_mode=playing_mode,
+        playing_mode_2=playing_mode_2
     )
 
 @app.route('/submit_form', methods=['POST'])
@@ -387,9 +461,10 @@ def submit_form():
     transcription_restart = float(request.form['transcription_restart'])
     language = request.form['language']
     talk = request.form['talk']
+    toggle_listen = request.form['toggle_listen']
     model = request.form['model']
     updateDB(gpt_role, gpt_context, gpt_action, gpt_temp)
-    updateTransDB(transcription_silence, transcription_restart, language, talk, model)
+    updateTransDB(transcription_silence, transcription_restart, language, talk, toggle_listen, model)
     sendTranscriptionConfig()
 
     return redirect(url_for("config"))
@@ -409,6 +484,27 @@ def reset():
     setDBReset(1)
     return redirect(url_for("config"))
 
+@app.route('/toggle_listen_1', methods=['POST'])
+def toggle_listen():
+    data = request.json.get('data')
+    if (data == "on"):
+        setDBPlayingMode1("play")
+    else:
+        setDBPlayingMode1("pause")    
+
+    response = {'message': 'ok'}
+    return jsonify(response)
+
+@app.route('/toggle_listen_2', methods=['POST'])
+def toggle_listen_2():
+    data = request.json.get('data')
+    if (data == "on"):
+        setDBPlayingMode2("play")
+    else:
+        setDBPlayingMode2("pause")     
+
+    response = {'message': 'ok'}
+    return jsonify(response)
 
 if __name__ == "__main__":
          
@@ -420,9 +516,5 @@ if __name__ == "__main__":
     sendTranscriptionConfig2()
     webbrowser.open('http://'+ip_address+':'+str(server_port)+'/config')
 
-    osc_address = "/status/"
-    full_reply_content = 'listening'
-    osc_message = full_reply_content
-    client.send_message(osc_address, osc_message)
     app.run(debug=True, host="0.0.0.0", port=server_port)
 

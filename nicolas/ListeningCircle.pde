@@ -58,7 +58,7 @@ class ListeningCircle
 
     push();
     float padding = 28.0f;
-    translate(width - width/24 - padding , height - width/24 - padding);
+    translate(width/2 - width/24 - padding , height - width/24 - padding);
 
 
     // ellipse(0, 0, r*2, r*2);
@@ -89,6 +89,7 @@ class ListeningCircle
         float waveOffset = waveAmplitude * sin(waveFrequency * theta);
 
         push();
+
         translate((this.radius + waveOffset) * cos(theta), (this.radius + waveOffset) * sin(theta));
         rotate(theta + PI/2);
 

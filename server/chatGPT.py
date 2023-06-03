@@ -10,6 +10,7 @@ class chatGPT:
     end_it = False
     status = "waiting"
     class_id = 0
+    pause = False
 
     def __init__(self, ip_address, transcript_port_client, id):
 
@@ -17,9 +18,6 @@ class chatGPT:
         self.ip_address = ip_address
         self.transcript_port_client = transcript_port_client
         self.transcription_client = udp_client.SimpleUDPClient(ip_address, transcript_port_client)
-        osc_address = "/status/"
-        osc_message = 'listening'
-        self.transcription_client.send_message(osc_address, osc_message)
 
     def resetHistory(self):
         self.conversation_history = []
@@ -65,7 +63,6 @@ class chatGPT:
     
     def speak(self, text, language='fr'):
         subprocess.run(["say", "-v", f"{language}", text])
-
 
     def callOpenAI(self, prompt, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode, talk, send_to_pde, pde_client):
 

@@ -119,6 +119,7 @@ def getDBPlayingMode():
     dbc = db.cursor()
     dbc.execute('SELECT playing_mode, playing_mode_2 FROM config')
     result = dbc.fetchone()
+    db.close()
     return {
         "playing_mode" : result[0],
         "playing_mode_2" : result[1]
@@ -136,6 +137,7 @@ def getDBPlayingMode1():
     dbc = db.cursor()
     dbc.execute('SELECT playing_mode FROM config')
     result = dbc.fetchone()
+    db.close()
     return result[0]
 
 def setDBPlayingMode2(playing_mode):
@@ -150,6 +152,7 @@ def getDBPlayingMode2():
     dbc = db.cursor()
     dbc.execute('SELECT playing_mode_2 FROM config')
     result = dbc.fetchone()
+    db.close()
     return result[0]
 
 def setDBReset(reset):
@@ -164,6 +167,7 @@ def getDBReset():
     dbc = db.cursor()
     dbc.execute('SELECT reset FROM config')
     result = dbc.fetchone()
+    db.close()
     return result[0]
 
 def setDBMicIndex1(mic_index):

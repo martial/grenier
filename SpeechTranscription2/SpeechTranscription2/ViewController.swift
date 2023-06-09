@@ -16,6 +16,9 @@ class ViewController: NSViewController {
     @IBOutlet weak var firstMicButton: NSPopUpButton!
     //@IBOutlet weak var secondMicButton: NSPopUpButton!
     
+    @IBOutlet weak var firstTextField: NSTextField!
+    @IBOutlet weak var secondTextField: NSTextField!
+    
     /*
     struct Config: Codable { var microphone: UInt32 }
     var config = Config(microphone: 1000)
@@ -53,7 +56,7 @@ class ViewController: NSViewController {
         
         listAudioInputs();
 
-        transcription = Transcription(name:"channel 1", audio_input_ids: audio_input_ids, app_index: app_index_str, mic_button: firstMicButton);
+        transcription = Transcription(name:"channel 1", audio_input_ids: audio_input_ids, app_index: app_index_str, mic_button: firstMicButton, text1: firstTextField, text2: secondTextField);
         //transcription2 = Transcription(name:"channel 2", audio_input: audioInputIds);
 
 

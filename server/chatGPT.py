@@ -82,7 +82,7 @@ class chatGPT:
 
         if (send_to_pde):
             osc_address = '/chat/'
-            osc_message = ""
+            osc_message = (" ").encode('utf-8')
             pde_client.send_message(osc_address, osc_message)    
             osc_address = "/status/"
             osc_message = 'requesting'

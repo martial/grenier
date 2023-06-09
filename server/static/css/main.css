@@ -39,6 +39,7 @@ body {
 form {
 	display: flex;
 	flex-wrap: wrap;
+	margin-bottom: 0.25em;
 }
 .col{
 	width: 48%;
@@ -135,7 +136,11 @@ form input[type="submit"]:hover,
 }
 
 #toggle-listen-1 input,
-#toggle-listen-2 input {
+#toggle-listen-2 input,
+#stop-1 input,
+#stop-2 input,
+#reset-conv-1 input,
+#reset-conv-2 input {
 	background-color: black;
 	color: white;
 	text-align: center;
@@ -143,7 +148,23 @@ form input[type="submit"]:hover,
 }
 
 #toggle-listen-1 input:hover,
-#toggle-listen-2 input:hover {
+#toggle-listen-2 input:hover,
+#stop-1 input:hover,
+#stop-2 input:hover,
+#reset-conv-1 input:hover,
+#reset-conv-2 input:hover {
 	background-color: white;
 	color: black;
+}
+
+h3
+{
+	display: flex;
+	align-items: flex-start;
+	margin-bottom: 0.25rem;
+    white-space: nowrap;
+	font-weight: normal;
+	font-size: 20px;
+	line-height: 20px;
+    width: 50%;
 }

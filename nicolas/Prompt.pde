@@ -183,8 +183,6 @@ class Prompt
         {
             String status = msg.get(0).stringValue();
             
-            print(status);
-
             if (status.equals("processing"))
             {
                 fader.changeColor(process_color);
@@ -204,14 +202,10 @@ class Prompt
                 listen_circle.rotationSpeed = 0.001;
                 listen_circle.scale = 1.0;
                 listen_circle.circleColor = color(255, 255, 255);
-
-                // receivedPrompt = "";
-                //receivedChat = "";
                 mode = "listening";
             }
             if (status.equals("pause"))
             {
-                print("yo");
                 fader.changeColor(listen_color);
                 listen_circle.rotationSpeed = 0.0;
                 listen_circle.scale = 1.0;
@@ -220,9 +214,13 @@ class Prompt
             }
         }
 
+        if (msg.checkAddrPattern("/reset/"))
+        {
+            receivedPrompt = "";
+            receivedChat = "";
+        }
         if (msg.checkAddrPattern("/quiet/"))
         {
-            print("quiet");
             quiet = true;
             receivedChat = "Vous avez commencé à parler avant que je ne vous écoute, merci de marquer un silence";
         }

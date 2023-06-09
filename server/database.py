@@ -26,6 +26,10 @@ def createDB() :
     #dbc.execute('UPDATE config SET mic_index_1=?, mic_index_2=?', (0,0))
     # dbc.execute('ALTER TABLE config ADD toggle_listen INTEGER')
     #dbc.execute('UPDATE config SET toggle_listen=0')
+    #dbc.execute('ALTER TABLE config ADD reset_2 INTEGER')
+    #dbc.execute('ALTER TABLE config ADD stop INTEGER')
+    #dbc.execute('ALTER TABLE config ADD stop_2 INTEGER')
+    #dbc.execute('UPDATE config SET reset_2=?, stop=?, stop_2=?', (0,0,0))
 
 
     db.commit()
@@ -103,7 +107,7 @@ def updateTransDB(transcription_silence, transcription_restart, language, talk, 
 def resetDBModes():
     db = sqlite3.connect('database.db')
     dbc = db.cursor()
-    dbc.execute('UPDATE config SET playing_mode=?, reset=?, updated=?', ("play", 0, 0))
+    dbc.execute('UPDATE config SET playing_mode=?, reset=?, reset_2=?, updated=?', ("play", 0, 0, 0))
     db.commit()
     db.close()
 
@@ -158,14 +162,95 @@ def getDBPlayingMode2():
 def setDBReset(reset):
     db = sqlite3.connect('database.db')
     dbc = db.cursor()
-    dbc.execute('UPDATE config SET reset=?', (reset,))
+    dbc.execute('UPDATE config SET reset=?, reset_2=?', (reset,reset))
     db.commit()
     db.close()
 
 def getDBReset():
     db = sqlite3.connect('database.db')
     dbc = db.cursor()
+    dbc.execute('SELECT reset, reset_2 FROM config')
+    result = dbc.fetchone()
+    db.close()
+    return {
+        "reset" : result[0],
+        "reset_2" : result[1]
+    }
+
+def setDBReset1(reset):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('UPDATE config SET reset=?', (reset,))
+    db.commit()
+    db.close()
+
+def setDBReset2(reset):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('UPDATE config SET reset_2=?', (reset,))
+    db.commit()
+    db.close()
+
+def getDBReset1():
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
     dbc.execute('SELECT reset FROM config')
+    result = dbc.fetchone()
+    db.close()
+    return result[0]
+
+def getDBReset2():
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('SELECT reset_2 FROM config')
+    result = dbc.fetchone()
+    db.close()
+    return result[0]
+
+def setDBStop(stop):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('UPDATE config SET stop=?, stop_2=?', (stop,stop))
+    db.commit()
+    db.close()
+
+def getDBStop():
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('SELECT stop, stop_2 FROM config')
+    result = dbc.fetchone()
+    db.close()
+    return {
+        "stop" : result[0],
+        "stop_2" : result[1]
+    }
+
+def setDBStop1(stop):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('UPDATE config SET stop=?', (stop,))
+    db.commit()
+    db.close()
+
+def setDBStop2(stop):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('UPDATE config SET stop_2=?', (stop,))
+    db.commit()
+    db.close()
+
+def getDBStop1():
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('SELECT stop FROM config')
+    result = dbc.fetchone()
+    db.close()
+    return result[0]
+
+def getDBStop2():
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('SELECT stop_2 FROM config')
     result = dbc.fetchone()
     db.close()
     return result[0]

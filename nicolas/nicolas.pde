@@ -5,30 +5,7 @@ import ddf.minim.*;
 import ddf.minim.analysis.*;
 OscP5 oscP5;
 
-// PFont myFont;
-// int fontsize = 24;
-// float lineheight = 1.1;
-
-// String receivedPrompt = "";
-// String receivedChat = "";
-// float maxWidth = 610;
-// float padding = 20;
-
-// color listen_color = color(200, 200, 200);//152, 251, 152);
-// color process_color = color(255, 255, 255);//216, 191, 216);
-// color requesting_color = color(225, 225, 225);//216, 191, 216);
-// String mode = "listening";
-
-// BackgroundColorFader fader;
-// ListeningCircle listen_circle;
-
-// Minim minim;
-// AudioInput audioInput;
-
 JSONObject json;
-
-// boolean quiet = false;
-
 
 Prompt prompt1;
 Prompt prompt2;

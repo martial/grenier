@@ -40,15 +40,23 @@ class Transcription
     var app_index : String = "1";
 
     var mic_button : NSPopUpButton?
+    
+    var text1 : NSTextField?
+    var text2 : NSTextField?
 
-    init(name: String, audio_input_ids: [UInt32], app_index: String, mic_button: NSPopUpButton)
+    init(name: String, audio_input_ids: [UInt32], app_index: String, mic_button: NSPopUpButton, text1: NSTextField, text2: NSTextField)
     {
         self.name = name;
         self.app_index = app_index;
         self.audio_input_ids = audio_input_ids;
         
         self.mic_button = mic_button;
+
+        self.text1 = text1;
+        self.text2 = text2;
         
+        self.text2?.stringValue = self.status
+
         var engine = AVAudioEngine()
         let inputNode: AVAudioInputNode = engine.inputNode
         // get the low level input audio unit from the engine:
@@ -102,6 +110,8 @@ class Transcription
 
             if ( message.addressPattern.description == "/config/" )
             {
+                print("---- GET CONFIG")
+                
                 do {
                     
                     let (st, rt, lg, mi) = try message.values.masked(Float.self, Float.self, String.self, Int.self)
@@ -119,6 +129,8 @@ class Transcription
             }
             else if ( message.addressPattern.description == "/stopped/" )
             {
+                print("---- STOPPED")
+
                 self.transcription = "";
                 self.stopRecording()
                 Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
@@ -127,10 +139,17 @@ class Transcription
             }
             else if ( message.addressPattern.description == "/status/"  )
             {
+                print("---- STATUS")
+
                 do {
                     
                     let (st) = try message.values.masked(String.self)
-                    if (self.status == "processing" && st == "listening")
+                    print(st, self.status)
+                    if (st == "pause")
+                    {
+                        self.stopRecording();
+                    }
+                    else if (self.status != "listening" && st == "listening")
                     {
                         self.stopRecording();
                         Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
@@ -139,6 +158,8 @@ class Transcription
                     }
 
                     self.status = st
+                    self.text2?.stringValue = self.status
+
                     
                 } catch {
                     print("Error: \(error)")
@@ -191,6 +212,8 @@ class Transcription
     
     func startRecording()
     {
+        text1?.stringValue = "start recording"
+        
         // Setup audio session
 //        let audioSession = AVAudioSession.sharedInstance()
 //        do {
@@ -229,7 +252,8 @@ class Transcription
                                                    
                 if (self.transcription.contains("Stop") || self.transcription.contains("stop"))
                 {
-                    
+                    print("send stop")
+
                     var send_address = "/stop/";
                     try? self.oscClient.send(
                         .message(send_address, values: [1]),
@@ -251,8 +275,8 @@ class Transcription
                 //if (!self.started_on_processing)
                 //{
                 
-                    print("SEND SPEECH "+self.name+" ", self.transcription )
-                    
+                    print("send speech")
+
                     var send_address = "/speech/";
                     try? self.oscClient.send(
                         .message(send_address, values: [self.transcription, self.started_on_processing]),// self.started_on_processing]),
@@ -333,6 +357,8 @@ class Transcription
                 self.transcription = "";
                 self.stopRecording()
                             
+                print("send end")
+
                 var send_address = "/end-speech/";
                 try? self.oscClient.send(
                     .message(send_address, values: [self.started_on_processing]),
@@ -350,6 +376,8 @@ class Transcription
         
     func stopRecording()
     {
+        text1?.stringValue = "stop recording"
+
         running = false;
 
         audioEngine.stop()
@@ -413,6 +441,8 @@ class Transcription
     
     func disable()
     {
+        print("disable")
+
         self.transcription = "";
         self.stopRecording()
     }

@@ -10,5 +10,8 @@
     "server_to_pde": 9005,
     "server_to_transcript": 9004,
     "transcript_to_server": 9003
+  },
+  "log": {
+    "port" : 9010
   }
 }

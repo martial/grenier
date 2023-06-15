@@ -31,13 +31,15 @@ class Transcription
         
     var server_port_client = 0;
     var server_port_server = 0;
-    
+    var log_port = 0;
+
     var name = "";
     
     var mic_index : Int = 0;
     var audio_input_ids: [UInt32] = [];
 
     var app_index : String = "1";
+    var log_prefix : String = "Speech 1: ";
 
     var mic_button : NSPopUpButton?
     
@@ -48,6 +50,8 @@ class Transcription
     {
         self.name = name;
         self.app_index = app_index;
+        self.log_prefix = "Speech "+app_index+": ";
+
         self.audio_input_ids = audio_input_ids;
         
         self.mic_button = mic_button;
@@ -95,12 +99,21 @@ class Transcription
                     }
                 }
                 
+                if let log = dictionary["log"] as? [String: Int]
+                {
+                    if let lp = log["port"] as? Int {
+                        log_port = lp;
+                    }
+                }
+                
                 //self.server_port_client = dictionary["ports"]["transcript_to_server"]
                 //self.server_port_server = dictionary["ports"]["server_to_transcript"]
 
                 // Do something with the dictionary here
             }
-        } catch {
+        }
+        catch
+        {
             print("Failed to load JSON file: \(error.localizedDescription)")
         }
         
@@ -112,6 +125,9 @@ class Transcription
             {
                 print("---- GET CONFIG")
                 
+                try? self.oscClient.send(
+                    .message(self.log_prefix+"Receive config data", values: []), to: "localhost", port: UInt16(self.log_port))
+                
                 do {
                     
                     let (st, rt, lg, mi) = try message.values.masked(Float.self, Float.self, String.self, Int.self)
@@ -121,9 +137,12 @@ class Transcription
                     self.mic_index = mi
                                                             
                     self.restartAll()
-                                                    
-                } catch {
+                }
+                catch
+                {
                     print("Error: \(error)")
+                    try? self.oscClient.send(
+                        .message(self.log_prefix+"Receive config error", values: []), to: "localhost", port: UInt16(self.log_port))
                 }
                 
             }
@@ -145,6 +164,10 @@ class Transcription
                     
                     let (st) = try message.values.masked(String.self)
                     print(st, self.status)
+                    
+                    try? self.oscClient.send(
+                        .message(self.log_prefix+"Receive status "+st, values: []), to: "localhost", port: UInt16(self.log_port))
+                    
                     if (st == "pause")
                     {
                         self.stopRecording();
@@ -161,21 +184,20 @@ class Transcription
                     self.text2?.stringValue = self.status
 
                     
-                } catch {
+                }
+                catch
+                {
                     print("Error: \(error)")
                 }
-                
             }
-
         }
         
         var send_address = "/get-config/";
         do { try self.oscServer.start() } catch { print(error) }
         try? self.oscClient.send(
-            
             .message(send_address, values: []),
-                to: "localhost", // remote IP address or hostname
-                port: UInt16(server_port_client) // standard OSC port but can be changed
+                to: "localhost",
+                port: UInt16(server_port_client)
         )
 
         restartAll()
@@ -183,6 +205,9 @@ class Transcription
     
     func restartAll()
     {
+        try? self.oscClient.send(
+            .message(self.log_prefix+"Restart all", values: []), to: "localhost", port: UInt16(self.log_port))
+        
         stopRecording()
         speechRecognizer = nil
 
@@ -212,18 +237,11 @@ class Transcription
     
     func startRecording()
     {
+        try? self.oscClient.send(
+            .message(self.log_prefix+"Start recording", values: []), to: "localhost", port: UInt16(self.log_port))
+        
         text1?.stringValue = "start recording"
-        
-        // Setup audio session
-//        let audioSession = AVAudioSession.sharedInstance()
-//        do {
-//            try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-//            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-//        } catch {
-//            print("Error setting up audio session: \(error.localizedDescription)")
-//        }
-        
-        
+                
         if (status == "processing")
         {
             started_on_processing = true;
@@ -253,6 +271,9 @@ class Transcription
                 if (self.transcription.contains("Stop") || self.transcription.contains("stop"))
                 {
                     print("send stop")
+                    
+                    try? self.oscClient.send(
+                        .message(self.log_prefix+"Send stop message", values: []), to: "localhost", port: UInt16(self.log_port))
 
                     var send_address = "/stop/";
                     try? self.oscClient.send(
@@ -276,12 +297,15 @@ class Transcription
                 //{
                 
                     print("send speech")
+                
+                    try? self.oscClient.send(
+                        .message(self.log_prefix+"Send speech message, "+self.transcription+", started on processing: "+String(self.started_on_processing), values: []), to: "localhost", port: UInt16(self.log_port))
 
                     var send_address = "/speech/";
                     try? self.oscClient.send(
-                        .message(send_address, values: [self.transcription, self.started_on_processing]),// self.started_on_processing]),
-                            to: "localhost", // remote IP address or hostname
-                        port: UInt16(self.server_port_client) // standard OSC port but can be changed
+                        .message(send_address, values: [self.transcription, self.started_on_processing]),
+                            to: "localhost",
+                        port: UInt16(self.server_port_client)
                     )
                 
                 //}
@@ -292,35 +316,16 @@ class Transcription
             } else if let error = error {
                 //if (self.running) {
                     print("Recognition task error: \(error)")
+                
+                try? self.oscClient.send(
+                    .message(self.log_prefix+"Recognition task error, \(error)", values: []), to: "localhost", port: UInt16(self.log_port))
                 //}
             }
         });
         
 
-        
-        
         // Setup audio engine
         let inputNode = audioEngine.inputNode
-        /*
-        if let inputDevice = inputDevice {
-            do {
-                let input = try AVAudioInputNode();//inputDevice: self.inputDevice)
-                audioEngine.attach(input)
-                audioEngine.connect(input, to: inputNode, format: inputNode.inputFormat(forBus: 0))
-            } catch {
-                print("Error setting input device: \(error.localizedDescription)")
-            }
-        }
-        */
-
-        /*
-        // Start the audio engine
-        do {
-            try audioEngine.start()
-        } catch {
-            print("Error starting audio engine: \(error.localizedDescription)")
-        }
-        */
         
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
@@ -358,6 +363,9 @@ class Transcription
                 self.stopRecording()
                             
                 print("send end")
+            
+                try? self.oscClient.send(
+                    .message(self.log_prefix+"Send end speech message, started on processing: "+String(self.started_on_processing), values: []), to: "localhost", port: UInt16(self.log_port))
 
                 var send_address = "/end-speech/";
                 try? self.oscClient.send(
@@ -376,6 +384,9 @@ class Transcription
         
     func stopRecording()
     {
+        try? self.oscClient.send(
+            .message(self.log_prefix+"Stop recording", values: []), to: "localhost", port: UInt16(self.log_port))
+        
         text1?.stringValue = "stop recording"
 
         running = false;
@@ -396,6 +407,9 @@ class Transcription
     
     func setAudioInput(audio_input_index: Int)
     {
+        try? self.oscClient.send(
+            .message(self.log_prefix+"Set audio input", values: []), to: "localhost", port: UInt16(self.log_port))
+        
         self.mic_index = audio_input_index;
         
         if (audio_input_index == -1)

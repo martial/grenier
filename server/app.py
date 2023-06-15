@@ -35,6 +35,7 @@ transcript_port_client = server_config["ports"]["server_to_transcript"]
 transcript_port_server = server_config["ports"]["transcript_to_server"]
 transcript_port_client2 = server_config["ports2"]["server_to_transcript"]
 transcript_port_server2 = server_config["ports2"]["transcript_to_server"]
+log_port = server_config["log"]["port"]
 
 # Create database
 #createDB()
@@ -56,18 +57,20 @@ model = res["model"]
 
 resetDBModes()
 
-gpt = chatGPT(ip_address,transcript_port_client, 1)
-gpt.appendHistory({"role": "system", "content": gpt_role})
-gpt.appendHistory({"role": "system", "content": gpt_context})
-gpt.appendHistory({"role": "system", "content": gpt_action})
-gpt2 = chatGPT(ip_address,transcript_port_client2, 2)
-gpt2.appendHistory({"role": "system", "content": gpt_role})
-gpt2.appendHistory({"role": "system", "content": gpt_context})
-gpt2.appendHistory({"role": "system", "content": gpt_action})
-
 # Create an OSC client
 client = udp_client.SimpleUDPClient(ip_address, pde_port)
 client2 = udp_client.SimpleUDPClient(ip_address, pde_port2)
+log_client = udp_client.SimpleUDPClient(ip_address, log_port)
+
+
+gpt = chatGPT(ip_address,transcript_port_client, 1, log_client)
+gpt.appendHistory({"role": "system", "content": gpt_role})
+gpt.appendHistory({"role": "system", "content": gpt_context})
+gpt.appendHistory({"role": "system", "content": gpt_action})
+gpt2 = chatGPT(ip_address,transcript_port_client2, 2, log_client)
+gpt2.appendHistory({"role": "system", "content": gpt_role})
+gpt2.appendHistory({"role": "system", "content": gpt_context})
+gpt2.appendHistory({"role": "system", "content": gpt_action})
 
 playing_mode = "play"
 playing_mode_2 = "play"
@@ -123,7 +126,10 @@ def handle_speech_message(address, *args):
     
     global gpt
 
+    log_client.send_message("/log/", "Receive Speech 1, "+str(args[0]))
+    
     if ( playing_mode == "pause" ):
+        log_client.send_message("/log/", "1 paused, returns")
         return
 
     transcription = str(args[0])
@@ -132,8 +138,13 @@ def handle_speech_message(address, *args):
     started_on_processing = (bool(args[1]))
 
     if (transcription == "Stop"):
+
+        log_client.send_message("/log/", "Stop 1")
         gpt.setEndIt(True)
+
     elif (gpt.getStatus() == "waiting" and not started_on_processing and transcription != ''):
+
+        log_client.send_message("/log/", "Send 1 to promp")
         osc_message = transcription.encode('utf-8')
         osc_address = "/prompt/"
         client.send_message(osc_address, osc_message)
@@ -142,7 +153,10 @@ def handle_speech_message2(address, *args):
     
     global gpt2
 
+    log_client.send_message("/log/", "Receive Speech 2, "+str(args[0]))
+
     if ( playing_mode_2 == "pause" ):
+        log_client.send_message("/log/", "2 paused, returns")
         return
 
     transcription = str(args[0])
@@ -151,8 +165,13 @@ def handle_speech_message2(address, *args):
     started_on_processing = (bool(args[1]))
 
     if (transcription == "Stop"):
+
+        log_client.send_message("/log/", "Stop 2")
         gpt2.setEndIt(True)
+
     elif (gpt2.getStatus() == "waiting" and not started_on_processing and transcription != ''):
+        
+        log_client.send_message("/log/", "Send 2 to promp")
         osc_message = transcription.encode('utf-8')
         osc_address = "/prompt/"
         client2.send_message(osc_address, osc_message)
@@ -161,10 +180,15 @@ def handle_stop_message(address, *args):
 
     global gpt
 
+    log_client.send_message("/log/", "Receive Stop 1")
+
     if ( playing_mode == "pause" ):
+        log_client.send_message("/log/", "1 paused, returns")
         return
 
     if ( gpt.getStatus() == "processing"):
+
+        log_client.send_message("/log/", "Stop 1")
         gpt.setEndIt(True)
         osc_address = "/stopped/"
         gpt.sendStopMessage()
@@ -173,10 +197,15 @@ def handle_stop_message2(address, *args):
 
     global gpt2
 
+    log_client.send_message("/log/", "Receive Stop 2")
+
     if ( playing_mode_2 == "pause" ):
+        log_client.send_message("/log/", "2 paused, returns")
         return
 
     if ( gpt2.getStatus() == "processing"):
+
+        log_client.send_message("/log/", "Stop 2")
         gpt2.setEndIt(True)
         osc_address = "/stopped/"
         gpt2.sendStopMessage()
@@ -187,13 +216,17 @@ def end_speech_message(started_on_processing) :
     global gpt
     global playing_mode
 
+    log_client.send_message("/log/", "Receive End Speech 1, started on processing "+str(started_on_processing))
+
     if ( playing_mode == "pause" ):
+        log_client.send_message("/log/", "1 paused, returns")
         return
     
     transcription = gpt.getTranscription()
 
     # Traitement du message OSC reçu
     if (gpt.getStatus() == "waiting" and not started_on_processing and transcription != ''):
+        log_client.send_message("/log/", "Call open AI 1")
         gpt.callOpenAI(transcription, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode, talk, True, client)
     
     gpt.clearTranscription()
@@ -221,13 +254,17 @@ def end_speech_message2(started_on_processing) :
     global gpt2
     global playing_mode_2
 
+    log_client.send_message("/log/", "Receive End Speech 2, started on processing "+str(started_on_processing))
+
     if ( playing_mode_2 == "pause" ):
+        log_client.send_message("/log/", "2 paused, returns")
         return
     
     transcription = gpt2.getTranscription()
 
     # Traitement du message OSC reçu
     if (gpt2.getStatus() == "waiting" and not started_on_processing and transcription != ''):
+        log_client.send_message("/log/", "Call open AI 2")
         gpt2.callOpenAI(transcription, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode_2, False, True, client2)
     
     gpt2.clearTranscription()

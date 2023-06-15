@@ -52,6 +52,8 @@ class chatGPT:
         self.transcription = ""
 
     def setStatus(self, status):
+        print("set status "+status)
+
         self.status = status
 
     def getStatus(self):
@@ -67,6 +69,8 @@ class chatGPT:
         subprocess.run(["say", "-v", f"{language}", text])
 
     def callOpenAI(self, prompt, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode, talk, send_to_pde, pde_client):
+
+        print(self.class_id)
 
         if playing_mode == "pause" :
             self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" paused, returns")
@@ -112,7 +116,7 @@ class chatGPT:
 
         except InvalidRequestError as e:
             print(e)
-            self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" request error, "+e)
+            self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" request error")
 
             if (send_to_pde):
                 osc_message = ("InvalidRequestError — Tokens exceeeded").encode('utf-8')
@@ -155,6 +159,9 @@ class chatGPT:
 
         self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" begins chunks")
 
+        print("start chunk")
+        print(response)
+
         for chunk in response:
 
             if ( playing_mode == "pause" ):
@@ -187,6 +194,8 @@ class chatGPT:
 
                 #print(full_reply_content)
         
+        print("end chunk")
+
         self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" end chunks")
 
         # Append chatGPT response to history

@@ -13,7 +13,7 @@ cp ./server/server-config.json ./SpeechTranscription2/DerivedData/SpeechTranscri
 cp ./server/server-config.json ./SpeechTranscription2/DerivedData/SpeechTranscription2/Build/Products/Debug/SpeechTranscription2-2.app/Contents/Resources/server-config.json
 # execution de l'application de transcription pour deux micros / deux instances
 open ./SpeechTranscription2/DerivedData/SpeechTranscription2/Build/Products/Debug/SpeechTranscription2.app --args 1
-open ./SpeechTranscription2/DerivedData/SpeechTranscription2/Build/Products/Debug/SpeechTranscription2-2.app --args 2
+#open ./SpeechTranscription2/DerivedData/SpeechTranscription2/Build/Products/Debug/SpeechTranscription2-2.app --args 2
 
 # execution de l'application pde
 #open ./nicolas/macos-x86_64/nicolas.app

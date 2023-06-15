@@ -11,13 +11,15 @@ class chatGPT:
     status = "waiting"
     class_id = 0
     pause = False
+    log_client = None
 
-    def __init__(self, ip_address, transcript_port_client, id):
+    def __init__(self, ip_address, transcript_port_client, id, log_client):
 
         self.class_id = id
         self.ip_address = ip_address
         self.transcript_port_client = transcript_port_client
         self.transcription_client = udp_client.SimpleUDPClient(ip_address, transcript_port_client)
+        self.log_client = log_client
 
     def resetHistory(self):
         self.conversation_history = []
@@ -67,13 +69,17 @@ class chatGPT:
     def callOpenAI(self, prompt, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode, talk, send_to_pde, pde_client):
 
         if playing_mode == "pause" :
+            self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" paused, returns")
             return
         if prompt == '' :
+            self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" empty prompt, returns")
             return
     
         if self.getStatus() == "processing":
+            self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" processing, returns")
             return
         if self.getStatus() == "will_waiting":
+            self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" will waiting, returns")
             return
         
         self.setStatus("processing")
@@ -106,7 +112,8 @@ class chatGPT:
 
         except InvalidRequestError as e:
             print(e)
-            
+            self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" request error, "+e)
+
             if (send_to_pde):
                 osc_message = ("InvalidRequestError — Tokens exceeeded").encode('utf-8')
                 osc_address = "/chat/"
@@ -124,6 +131,7 @@ class chatGPT:
         
         except openai.errors.RateLimitError as e:
             print(e)
+            self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" rate error, "+e)
 
             osc_message = ("RateLimitError — Server is overloaded").encode('utf-8')
             osc_address = "/chat/"
@@ -144,6 +152,8 @@ class chatGPT:
         collected_chunks = []
         collected_messages = []
         last_spoken_phrase = ""
+
+        self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" begins chunks")
 
         for chunk in response:
 
@@ -177,6 +187,8 @@ class chatGPT:
 
                 #print(full_reply_content)
         
+        self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" end chunks")
+
         # Append chatGPT response to history
         full_reply_content = ''.join([m.get('content', '') for m in collected_messages])
         self.appendHistory({"role": "assistant", "content": full_reply_content})

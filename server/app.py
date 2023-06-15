@@ -137,6 +137,8 @@ def handle_speech_message(address, *args):
     gpt.setTranscription(transcription)
     started_on_processing = (bool(args[1]))
 
+    print(gpt.getStatus())
+
     if (transcription == "Stop"):
 
         log_client.send_message("/log/", "Stop 1")
@@ -228,6 +230,8 @@ def end_speech_message(started_on_processing) :
     if (gpt.getStatus() == "waiting" and not started_on_processing and transcription != ''):
         log_client.send_message("/log/", "Call open AI 1")
         gpt.callOpenAI(transcription, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode, talk, True, client)
+    else:
+        return
     
     gpt.clearTranscription()
 
@@ -266,6 +270,8 @@ def end_speech_message2(started_on_processing) :
     if (gpt2.getStatus() == "waiting" and not started_on_processing and transcription != ''):
         log_client.send_message("/log/", "Call open AI 2")
         gpt2.callOpenAI(transcription, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode_2, False, True, client2)
+    else:
+        return
     
     gpt2.clearTranscription()
 

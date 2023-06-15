@@ -129,18 +129,7 @@ class chatGPT:
         
             return
         
-         except openai.errors.APIConnectionError as e:
-            print(e)
-
-            osc_message = ("APIConnectionError — Issue connecting to openai services.").encode('utf-8')
-            osc_address = "/chat/"
-
-            if (send_to_pde):
-                pde_client.send_message(osc_address, osc_message)
-                self.setStatus("will_waiting")
-                self.setEndIt(False)
-
-            return
+         
 
         except openai.errors.RateLimitError as e:
             print(e)
@@ -156,18 +145,7 @@ class chatGPT:
 
             return
 
-         except openai.errors.ServiceUnavailableError as e:
-            print(e)
-
-            osc_message = ("ServiceUnavailableError — Server issue").encode('utf-8')
-            osc_address = "/chat/"
-
-            if (send_to_pde):
-                pde_client.send_message(osc_address, osc_message)
-                self.setStatus("will_waiting")
-                self.setEndIt(False)
-
-            return
+        
 
         if (send_to_pde):
             osc_address = "/status/"

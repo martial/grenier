@@ -36,6 +36,3 @@ class BackgroundColorFader
     rect(0,0,width/2, height);
   }
 }
-
-
-

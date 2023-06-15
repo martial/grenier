@@ -97,7 +97,7 @@ class chatGPT:
             response = openai.ChatCompletion.create(
                 model=model,#gpt-4
                 messages=self.getHistory(),
-                max_tokens=2048,
+                max_tokens=1024,
                 n=1,
                 stop=None,
                 temperature=gpt_temp,
@@ -108,7 +108,7 @@ class chatGPT:
             print(e)
             
             if (send_to_pde):
-                osc_message = ("InvalidRequestError — Tokens exceeeded").encode('utf-8')
+                osc_message = ("InvalidRequestError").encode('utf-8')
                 osc_address = "/chat/"
                 pde_client.send_message(osc_address, osc_message)
             
@@ -122,10 +122,36 @@ class chatGPT:
         
             return
         
+         except openai.errors.APIConnectionError as e:
+            print(e)
+
+            osc_message = ("APIConnectionError — Issue connecting to openai services.").encode('utf-8')
+            osc_address = "/chat/"
+
+            if (send_to_pde):
+                pde_client.send_message(osc_address, osc_message)
+                self.setStatus("will_waiting")
+                self.setEndIt(False)
+
+            return
+
         except openai.errors.RateLimitError as e:
             print(e)
 
-            osc_message = ("RateLimitError — Server is overloaded").encode('utf-8')
+            osc_message = ("RateLimitError — please change model").encode('utf-8')
+            osc_address = "/chat/"
+
+            if (send_to_pde):
+                pde_client.send_message(osc_address, osc_message)
+                self.setStatus("will_waiting")
+                self.setEndIt(False)
+
+            return
+
+         except openai.errors.ServiceUnavailableError as e:
+            print(e)
+
+            osc_message = ("ServiceUnavailableError — Server issue").encode('utf-8')
             osc_address = "/chat/"
 
             if (send_to_pde):

@@ -136,16 +136,6 @@ class Prompt
         n_lines = getNumLines(wrappedText);
         h = n_lines*fontsize*lineheight;
 
-        /*
-        String[] list = wrappedText.split("\n");
-        String[] newArray = new String[list.length];
-        arrayCopy(list, 0, newArray, 0, newArray.length);
-        list = newArray;
-        wrappedText = join(list, '\n');
-        */
-        
-        println("start");
-
         if (h>max_height)
         {
             ArrayList<String> a_list = new ArrayList<String>();
@@ -163,24 +153,8 @@ class Prompt
               n_lines = getNumLines(wrappedText);
               h = n_lines*fontsize*lineheight;
             }
-            /*
-            while (h>max_height)
-            {
-                String[] newArray = new String[list.length-1];
-                //list[0] = ""; // clear unused to avoid array max bounds
-                //println("2 "+list.length+" "+newArray.length);
-                arrayCopy(list, 1, newArray, 0, newArray.length);
-                list = newArray;
-
-                wrappedText = join(list, '\n');
-                n_lines = getNumLines(wrappedText);
-                h = n_lines*fontsize*lineheight;
-            }
-            */
         }
         
-        println("end");
-
         // Display the received chat text on the screen
         text(wrappedText, padding, padding+offset_y);
 
@@ -231,8 +205,6 @@ class Prompt
     // This method is called when an OSC message is received
     void oscEvent(OscMessage msg)
     {
-        println("chat s");
-
         if (msg.checkAddrPattern("/prompt/"))
         {
             byte[] receivedBytes = msg.get(0).blobValue();
@@ -301,8 +273,6 @@ class Prompt
         {
             quiet = true;
             receivedChat = "Vous avez commencé à parler avant que je ne vous écoute, merci de marquer un silence";
-        }
-        
-        println("chat e");
+        }        
     }
 }

@@ -33,7 +33,7 @@ transcript_port_server2 = server_config["ports2"]["transcript_to_server"]
 log_port = server_config["log"]["port"]
 
 # Create database
-#createDB()
+createDB()
 
 # Load config
 res = getDBConfig(True)
@@ -520,6 +520,8 @@ def config(model= None, talk = None, toggle_listen = None, language=None, gpt_ro
         playing_mode_2 = "pause"
         setDBPlayingMode("pause")
 
+    prompt = getPromptDB()
+
     return render_template('index.html', 
         gpt_role=gpt_role, 
         gpt_context=gpt_context, 
@@ -533,7 +535,8 @@ def config(model= None, talk = None, toggle_listen = None, language=None, gpt_ro
         toggle_listen=toggle_listen,
         model=model,
         playing_mode=playing_mode,
-        playing_mode_2=playing_mode_2
+        playing_mode_2=playing_mode_2,
+        prompt=prompt
     )
 
 @app.route('/submit_form', methods=['POST'])
@@ -549,8 +552,10 @@ def submit_form():
     talk = request.form['talk']
     toggle_listen = request.form['toggle_listen']
     model = request.form['model']
+
     updateDB(gpt_role, gpt_context, gpt_action, gpt_temp)
     updateTransDB(transcription_silence, transcription_restart, language, talk, toggle_listen, model)
+
     sendTranscriptionConfig()
 
     return redirect(url_for("config"))
@@ -606,6 +611,38 @@ def toggle_listen_2():
         setDBPlayingMode2("play")
     else:
         setDBPlayingMode2("pause")     
+    response = {'message': 'ok'}
+    return jsonify(response)
+
+@app.route('/add_prompt', methods=['POST'])
+def add_prompt():
+    slot = request.json.get('slot')
+    title = request.json.get('title')
+    gpt_role = request.json.get('gpt_role')
+    gpt_context = request.json.get('gpt_context')
+    gpt_action = request.json.get('gpt_action')
+
+    id = insertPromptDB(slot,title,gpt_role,gpt_context,gpt_action)
+    response = {'id': id}
+    return jsonify(response)
+
+@app.route('/mod_prompt', methods=['POST'])
+def mod_prompt():
+    id = request.json.get('id')
+    slot = request.json.get('slot')
+    title = request.json.get('title')
+    gpt_role = request.json.get('gpt_role')
+    gpt_context = request.json.get('gpt_context')
+    gpt_action = request.json.get('gpt_action')
+
+    updatePromptDB(id, slot,title,gpt_role,gpt_context,gpt_action)
+    response = {'message': 'ok'}
+    return jsonify(response)
+
+@app.route('/del_prompt', methods=['POST'])
+def del_prompt():
+    id = request.json.get('id')
+    deletePromptDB(id)
     response = {'message': 'ok'}
     return jsonify(response)
 

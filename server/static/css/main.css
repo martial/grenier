@@ -63,6 +63,12 @@ form .input {
 .col .row .input {
     width: 48%;
 }
+.col .row .input.small {
+    width: 15%;
+}
+.col .row .input.small input {
+    width: 100%;
+}
 form label {
 	display: flex;
 	align-items: flex-start;

@@ -51,7 +51,7 @@ def main():
                 movement = calculate_movement(prev_landmarks, results.pose_landmarks)
                 movement_avg = moving_average(movement, moving_average_values)
 
-                print(f"Movement intensity: {movement_avg}")
+                #print(f"Movement intensity: {movement_avg}")
 
                 # Write the movement intensity on the image
                 cv2.putText(image, f"Movement intensity: {movement_avg:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)

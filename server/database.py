@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 def createDB() :
     db = sqlite3.connect('database.db')
@@ -31,6 +32,7 @@ def createDB() :
     #dbc.execute('ALTER TABLE config ADD stop_2 INTEGER')
     #dbc.execute('UPDATE config SET reset_2=?, stop=?, stop_2=?', (0,0,0))
 
+    #db.execute('CREATE TABLE prompt (id INTEGER PRIMARY KEY, slot INTEGER NOT NULL, title TEXT NOT NULL, gpt_role TEXT NOT NULL, gpt_context TEXT NOT NULL, gpt_action TEXT NOT NULL)')
 
     db.commit()
     db.close()
@@ -268,3 +270,36 @@ def setDBMicIndex2(mic_index):
     dbc.execute('UPDATE config SET mic_index_2=?', (mic_index,))
     db.commit()
     db.close()
+
+def insertPromptDB(slot, title, gpt_role, gpt_context, gpt_action):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute("INSERT INTO prompt (slot, title, gpt_role, gpt_context, gpt_action) VALUES (?,?,?,?,?)",(slot, title, gpt_role, gpt_context, gpt_action))
+    db.commit()
+    id = dbc.lastrowid
+    db.close()
+    return id
+
+def updatePromptDB(id, slot, title, gpt_role, gpt_context, gpt_action):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute("UPDATE prompt SET slot=?, title=?, gpt_role=?, gpt_context=?, gpt_action=? WHERE id="+id+"",(slot, title, gpt_role, gpt_context, gpt_action))
+    db.commit()
+    db.close()
+
+def deletePromptDB(id):
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute("DELETE from prompt where id=?", (id,))
+    db.commit()
+    db.close()
+
+def getPromptDB():
+    db = sqlite3.connect('database.db')
+    dbc = db.cursor()
+    dbc.execute('SELECT * FROM prompt')
+    result = dbc.fetchall()
+    db.close()
+    return json.dumps(result)
+
+

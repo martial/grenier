@@ -189,7 +189,8 @@ class ViewController: NSViewController {
         }
 
         // Iterate through each audio device and print its input streams
-        for deviceID in deviceIDs {
+        for deviceID in deviceIDs
+        {
             // Get the device name
             var deviceName: CFString = "" as CFString
             propertyAddress = AudioObjectPropertyAddress(
@@ -216,7 +217,7 @@ class ViewController: NSViewController {
             propertyAddress = AudioObjectPropertyAddress(
                 mSelector: kAudioDevicePropertyStreams,
                 mScope: kAudioObjectPropertyScopeInput,
-                mElement: 0
+                mElement: kAudioObjectPropertyElementMaster
             )
             propertySize = 0
             result = AudioObjectGetPropertyDataSize(
@@ -244,17 +245,21 @@ class ViewController: NSViewController {
                     print("Error getting stream IDs for device '\(deviceName)': \(result)")
                     continue
                 }
-            }
+                else
+                {
+                    // Print the device name and input stream IDs
+                    print("Device '\(deviceName)' input streams:")
+                    print("- Stream Count: \(streamCount)")
 
-            // Print the device name and input stream IDs
-            print("Device '\(deviceName)' input streams:")
-            for streamID in streamIDs {
-                print("- Stream ID: \(streamID)")
-                // Add items to the pop-up button
-                firstMicButton.addItem(withTitle: String(deviceName) + " — ID: " + String(streamID));
-                //secondMicButton.addItem(withTitle: String(deviceName) + " — ID: " + String(streamID) );
-                
-                audio_input_ids.append(UInt32(streamID));
+                    for streamID in streamIDs {
+                        print("- Stream ID: \(streamID)")
+                        // Add items to the pop-up button
+                        firstMicButton.addItem(withTitle: String(deviceName) + " — ID: " + String(streamID));
+                        //secondMicButton.addItem(withTitle: String(deviceName) + " — ID: " + String(streamID) );
+                        
+                        audio_input_ids.append(UInt32(streamID));
+                    }
+                }
             }
         }
         

@@ -11,6 +11,7 @@ import threading
 from database import *
 import webbrowser
 from chatGPT import chatGPT
+import time
 
 load_dotenv() 
 
@@ -467,10 +468,12 @@ def start_parameter_loop():
                 language = res["language"]
                 model = res["model"]
 
+            #time.sleep(1./30)
+
+
 
     thread = threading.Thread(target=run_job)
     thread.start()
-
 
 app = Flask(__name__)
 app.debug = True # needed to scss to compile

@@ -11,7 +11,7 @@ cp ./server/server-config.json ./applis/transcript-apple/SpeechTranscription2-2.
 cp ./server/server-config.json ./applis/viewer-pde/server-config.json
 
 open ./applis/transcript-apple/SpeechTranscription2.app --args 1
-open ./applis/transcript-apple/SpeechTranscription2-2.app --args 2
+#open ./applis/transcript-apple/SpeechTranscription2-2.app --args 2
 
 open ./applis/viewer-pde/nicolas.app
 
@@ -24,4 +24,4 @@ pid2=$(pgrep -f "nicolas")
 trap 'kill $pid1; $pid2; exit' INT
 
 
-while true; do sleep 1; done
+#while true; do sleep 1; done

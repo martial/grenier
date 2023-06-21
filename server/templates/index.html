@@ -108,17 +108,17 @@
 
                 <div class="input">
                     <label for="gpt_role">Role</label>
-                    <textarea id="gpt_role" name="gpt_role" rows="4" placeholder="À partir de maintenant tu parles comme..." required>{{ gpt_role }}</textarea>
+                    <textarea id="gpt_role" name="gpt_role" rows="4" placeholder="À partir de maintenant tu parles comme..." required></textarea>
                 </div>
 
                 <div class="input">
                     <label for="gpt_context">Context</label>
-                    <textarea id="gpt_context" name="gpt_context" rows="4" placeholder="Notre conversation doit prendre en compte le contexte suivant: ..." >{{ gpt_context }}</textarea>
+                    <textarea id="gpt_context" name="gpt_context" rows="4" placeholder="Notre conversation doit prendre en compte le contexte suivant: ..." ></textarea>
                 </div>
 
                 <div class="input">
                     <label for="gpt_action">Action</label>
-                    <textarea id="gpt_action" name="gpt_action" rows="4" >{{ gpt_action }}</textarea>
+                    <textarea id="gpt_action" name="gpt_action" rows="4" ></textarea>
                 </div>
 
                 <div class="row">
@@ -268,10 +268,30 @@
         });
 
         //
+
+        function escapeQuotes(str)
+        {
+            str = str.replaceAll("&#34;","\"");
+            str = str.replaceAll("&#39;","'");
+            str = str.replaceAll("\\[", "[");
+            str = str.replaceAll("\\]", "]");
+            return str;
+        }
+
+        function cleanEscape(str)
+        {
+            str = str.replaceAll("\"","\\\"");
+            // str = str.replaceAll("\'","\\'");
+            str = str.replaceAll("\n"," ");
+            str = str.replaceAll("  "," ");
+            str = str.replaceAll("[", "\\[");
+            str = str.replaceAll("]", "\\]");
+            return str;
+        }
+
         var prompt = '{{ prompt }}';
-        prompt = prompt.replaceAll("&#34;","\"");
-        prompt = prompt.replaceAll("&#39;","'");
-        var prompt = JSON.parse(prompt);
+        prompt = escapeQuotes(prompt);
+        prompt = JSON.parse(prompt);
 
         var slots_prompt = []
         for (var i=0; i < 5; i++)
@@ -293,17 +313,20 @@
             var gpt_role = '{{ gpt_role }}';
             var gpt_context = '{{ gpt_context }}';
             var gpt_action = '{{ gpt_action }}';
-            gpt_role = gpt_role.replaceAll("&#34;","\"");
-            gpt_role = gpt_role.replaceAll("&#39;","'");
-            gpt_context = gpt_context.replaceAll("&#34;","\"");
-            gpt_context = gpt_context.replaceAll("&#39;","'");
-            gpt_action = gpt_action.replaceAll("&#34;","\"");
-            gpt_action = gpt_action.replaceAll("&#39;","'");
+            gpt_role = escapeQuotes(gpt_role);
+            gpt_context = escapeQuotes(gpt_context);
+            gpt_action = escapeQuotes(gpt_action);
 
             if (gpt_role==p[3] && gpt_context==p[4] && gpt_action==p[5])
             {
                 init_slot = slot;
                 init_prompt = id;
+            }
+            else
+            {
+                document.getElementById("gpt_role").value = gpt_role;
+                document.getElementById("gpt_context").value = gpt_context;
+                document.getElementById("gpt_action").value = gpt_action;
             }
         }
 
@@ -383,11 +406,19 @@
             opt.selected = 'selected';
 
             var slot = slot_sel.value-1;
+
+            var gpt_role = document.getElementById("gpt_role").value;
+            gpt_role = cleanEscape(gpt_role);
+            var gpt_context = document.getElementById("gpt_context").value;
+            gpt_context = cleanEscape(gpt_context);
+            var gpt_action = document.getElementById("gpt_action").value;
+            gpt_action = cleanEscape(gpt_action);
+
             slots_prompt[slot][id] = [
                 title,
-                document.getElementById("gpt_role").value,
-                document.getElementById("gpt_context").value,
-                document.getElementById("gpt_action").value
+                gpt_role,
+                gpt_context,
+                gpt_action
             ];
 
             document.getElementById("prompt_new").value = "";
@@ -406,9 +437,16 @@
                 prompt_sel.selectedOptions[0].text = title;
             }
 
-            slots_prompt[slot][id][1] = document.getElementById("gpt_role").value;
-            slots_prompt[slot][id][2] = document.getElementById("gpt_context").value;
-            slots_prompt[slot][id][3] = document.getElementById("gpt_action").value;
+            var gpt_role = document.getElementById("gpt_role").value;
+            var gpt_context = document.getElementById("gpt_context").value;
+            var gpt_action = document.getElementById("gpt_action").value;
+            gpt_role = cleanEscape(gpt_role);
+            gpt_context = cleanEscape(gpt_context);
+            gpt_action = cleanEscape(gpt_action);
+
+            slots_prompt[slot][id][1] = gpt_role;
+            slots_prompt[slot][id][2] = gpt_context;
+            slots_prompt[slot][id][3] = gpt_action;
 
             document.getElementById("prompt_new").value = "";
         }
@@ -434,6 +472,10 @@
             gpt_role = document.getElementById("gpt_role").value;
             gpt_context = document.getElementById("gpt_context").value;
             gpt_action = document.getElementById("gpt_action").value;
+
+            gpt_role = cleanEscape(gpt_role);
+            gpt_context = cleanEscape(gpt_context);
+            gpt_action = cleanEscape(gpt_action);
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/add_prompt', true);
@@ -471,6 +513,10 @@
             gpt_role = document.getElementById("gpt_role").value;
             gpt_context = document.getElementById("gpt_context").value;
             gpt_action = document.getElementById("gpt_action").value;
+
+            gpt_role = cleanEscape(gpt_role);
+            gpt_context = cleanEscape(gpt_context);
+            gpt_action = cleanEscape(gpt_action);
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/mod_prompt', true);

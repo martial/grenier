@@ -7,6 +7,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
 *.egg-info/
 dist/
 build/
@@ -17,6 +18,7 @@ instance/us
 .env.*
 *.log
 server/venv/
+server/venv3.1.0/
 #Models
 server/models
 # ViteJS
@@ -47,3 +49,5 @@ yarn-error.log*
 grenier-2
 grenier-2.zip
 applis.zip
+*.zip
+*.DS_Store

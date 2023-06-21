@@ -18,7 +18,12 @@ load_dotenv()
 # Define openAPI key
 api_key = os.getenv("API_KEY")
 openai.api_key = api_key
-
+openai.organization = "org-c7k4c7JQxMzf6Osi2dbircdN"
+test = openai.Model.list()
+#save result as json file
+with open("models.json", "w") as file:
+    json.dump(test, file)
+    
 with open("server-config.json", "r") as file:
     server_config = json.load(file)
 

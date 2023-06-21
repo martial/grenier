@@ -107,7 +107,7 @@ class chatGPT:
             response = openai.ChatCompletion.create(
                 model=model,#gpt-4
                 messages=self.getHistory(),
-                max_tokens=2048,
+                max_tokens=1024,
                 n=1,
                 stop=None,
                 temperature=gpt_temp,
@@ -119,7 +119,7 @@ class chatGPT:
             self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" request error")
 
             if (send_to_pde):
-                osc_message = ("InvalidRequestError — Tokens exceeeded").encode('utf-8')
+                osc_message = ("InvalidRequestError").encode('utf-8')
                 osc_address = "/chat/"
                 pde_client.send_message(osc_address, osc_message)
             
@@ -133,11 +133,13 @@ class chatGPT:
         
             return
         
+         
+
         except openai.errors.RateLimitError as e:
             print(e)
             self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" rate error, "+e)
 
-            osc_message = ("RateLimitError — Server is overloaded").encode('utf-8')
+            osc_message = ("RateLimitError — please change model").encode('utf-8')
             osc_address = "/chat/"
 
             if (send_to_pde):
@@ -146,6 +148,8 @@ class chatGPT:
                 self.setEndIt(False)
 
             return
+
+        
 
         if (send_to_pde):
             osc_address = "/status/"

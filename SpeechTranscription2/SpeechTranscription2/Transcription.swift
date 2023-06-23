@@ -323,14 +323,51 @@ class Transcription
             }
         });
         
+        
+        guard let monoFormat = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 1) else {
+             print("Error creating audio format")
+             return
+         }
+         print("Mono format created: \(monoFormat)")
 
         // Setup audio engine
         let inputNode = audioEngine.inputNode
-        
         let recordingFormat = inputNode.outputFormat(forBus: 0)
+        let useRightChannel = true
+        
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
             
-            recognitionRequest.append(buffer)
+            
+            let channelCount = Int(buffer.format.channelCount)
+            let frames = buffer.frameLength
+            //print("channel count: \(channelCount), frames: \(frames)")
+
+            if let data = buffer.floatChannelData {
+                var audioDataArray: [Float] = []
+                
+                //print("channel count: \(channelCount)")
+                if channelCount == 2 {
+                    let start = useRightChannel ? 1 : 0
+                    for i in stride(from: start, to: Int(frames) * channelCount, by: 2) {
+                        let sample = data.pointee[i]
+                        audioDataArray.append(sample)
+                    }
+                } else if channelCount == 1 {
+                    for i in 0..<Int(frames) {
+                        let sample = data.pointee[i]
+                        audioDataArray.append(sample)
+                    }
+                }
+                
+                // Convert the array to AVAudioPCMBuffer and append it to recognitionRequest
+                let audioBuffer = AVAudioPCMBuffer(pcmFormat: monoFormat, frameCapacity: AVAudioFrameCount(audioDataArray.count))!
+                audioBuffer.frameLength = AVAudioFrameCount(audioDataArray.count)
+                audioBuffer.floatChannelData?.pointee.initialize(from: &audioDataArray, count: audioDataArray.count)
+               // print("Audio buffer prepared")
+                
+                
+                recognitionRequest.append(audioBuffer)
+            }
         }
         
         // Démarrer le minuteur pour effacer la variable de transcription après un certain temps de silence

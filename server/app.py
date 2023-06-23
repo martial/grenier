@@ -622,6 +622,16 @@ def toggle_listen_2():
     response = {'message': 'ok'}
     return jsonify(response)
 
+@app.route('/get_db_prompt', methods=['POST'])
+def get_db_prompt():
+    res = getDBConfig()
+    response = {
+        'gpt_role': res["gpt_role"],
+        'gpt_context': res["gpt_context"],
+        'gpt_action': res["gpt_action"]
+    }
+    return jsonify(response)
+
 @app.route('/add_prompt', methods=['POST'])
 def add_prompt():
     slot = request.json.get('slot')

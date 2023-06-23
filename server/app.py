@@ -11,6 +11,7 @@ import threading
 from database import *
 import webbrowser
 from chatGPT import chatGPT
+import time
 
 load_dotenv() 
 
@@ -475,10 +476,12 @@ def start_parameter_loop():
             #time.sleep(1./30)
 
 
+            #time.sleep(1./30)
+
+
 
     thread = threading.Thread(target=run_job)
     thread.start()
-
 
 app = Flask(__name__)
 app.debug = True # needed to scss to compile
@@ -620,6 +623,16 @@ def toggle_listen_2():
     else:
         setDBPlayingMode2("pause")     
     response = {'message': 'ok'}
+    return jsonify(response)
+
+@app.route('/get_db_prompt', methods=['POST'])
+def get_db_prompt():
+    res = getDBConfig()
+    response = {
+        'gpt_role': res["gpt_role"],
+        'gpt_context': res["gpt_context"],
+        'gpt_action': res["gpt_action"]
+    }
     return jsonify(response)
 
 @app.route('/add_prompt', methods=['POST'])

@@ -115,22 +115,22 @@
 
                 <div class="input">
                     <label for="gpt_role">Role</label>
-                    <textarea id="gpt_role" name="gpt_role" rows="4" placeholder="À partir de maintenant tu parles comme..." required>{{ gpt_role }}</textarea>
+                    <textarea id="gpt_role" name="gpt_role" rows="4" placeholder="À partir de maintenant tu parles comme..." required></textarea>
                 </div>
 
                 <div class="input">
                     <label for="gpt_context">Context</label>
-                    <textarea id="gpt_context" name="gpt_context" rows="4" placeholder="Notre conversation doit prendre en compte le contexte suivant: ..." >{{ gpt_context }}</textarea>
+                    <textarea id="gpt_context" name="gpt_context" rows="4" placeholder="Notre conversation doit prendre en compte le contexte suivant: ..." ></textarea>
                 </div>
 
                 <div class="input">
                     <label for="gpt_action">Action</label>
-                    <textarea id="gpt_action" name="gpt_action" rows="4" >{{ gpt_action }}</textarea>
+                    <textarea id="gpt_action" name="gpt_action" rows="4" ></textarea>
                 </div>
 
                 <div class="row">
                     <div id="update_notice">Configuration updated</div>
-                    <input type="submit" value="Save">
+                    <input type="submit" id="submit_save" value="Save">
                 </div>
 
             </form>
@@ -275,43 +275,25 @@
         });
 
         //
-        var prompt = '{{ prompt }}';
-        prompt = prompt.replaceAll("&#34;","\"");
-        prompt = prompt.replaceAll("&#39;","'");
-        var prompt = JSON.parse(prompt);
 
-        var slots_prompt = []
-        for (var i=0; i < 5; i++)
+        function escapeQuotes(str)
         {
-            slots_prompt.push({});
+            str = str.replaceAll("&#34;","\"");
+            str = str.replaceAll("&#39;","'");
+            str = str.replaceAll("\\[", "[");
+            str = str.replaceAll("\\]", "]");
+            return str;
         }
 
-        var init_slot = 0;
-        var init_prompt = -1;
-
-        for (var i=0; i < prompt.length; i++)
+        function cleanEscape(str)
         {
-            var p = prompt[i];
-            var id = p[0];
-            var slot = p[1]-1;
-            var title = p[2];
-            slots_prompt[slot][id] = [title,p[3],p[4],p[5]];
-
-            var gpt_role = '{{ gpt_role }}';
-            var gpt_context = '{{ gpt_context }}';
-            var gpt_action = '{{ gpt_action }}';
-            gpt_role = gpt_role.replaceAll("&#34;","\"");
-            gpt_role = gpt_role.replaceAll("&#39;","'");
-            gpt_context = gpt_context.replaceAll("&#34;","\"");
-            gpt_context = gpt_context.replaceAll("&#39;","'");
-            gpt_action = gpt_action.replaceAll("&#34;","\"");
-            gpt_action = gpt_action.replaceAll("&#39;","'");
-
-            if (gpt_role==p[3] && gpt_context==p[4] && gpt_action==p[5])
-            {
-                init_slot = slot;
-                init_prompt = id;
-            }
+            str = str.replaceAll("\"","\\\"");
+            // str = str.replaceAll("\'","\\'");
+            str = str.replaceAll("\n"," ");
+            str = str.replaceAll("  "," ");
+            str = str.replaceAll("[", "\\[");
+            str = str.replaceAll("]", "\\]");
+            return str;
         }
 
         function setPromptSel(slot, init = false)
@@ -358,27 +340,6 @@
             }
         }
 
-        var slot_sel = document.getElementById("prompt_slot")
-        slot_sel.options[init_slot].selected = 'selected'; 
-        setPromptSel(init_slot, true);
-
-        slot_sel.addEventListener("change", function()
-        {
-            var slot = slot_sel.value-1;
-            setPromptSel(slot);
-        });
-
-        var prompt_sel = document.getElementById("prompt_list")
-        prompt_sel.addEventListener("change", function()
-        {
-            var slot = slot_sel.value-1;
-            var id = prompt_sel.selectedOptions[0].getAttribute("prompt_id");
-
-            document.getElementById("gpt_role").value = slots_prompt[slot][id][1];
-            document.getElementById("gpt_context").value = slots_prompt[slot][id][2];
-            document.getElementById("gpt_action").value = slots_prompt[slot][id][3];
-        });
-
         function addPrompt(id)
         {
             var title = document.getElementById("prompt_new").value;
@@ -390,11 +351,19 @@
             opt.selected = 'selected';
 
             var slot = slot_sel.value-1;
+
+            var gpt_role = document.getElementById("gpt_role").value;
+            var gpt_context = document.getElementById("gpt_context").value;
+            var gpt_action = document.getElementById("gpt_action").value;
+            gpt_role = cleanEscape(gpt_role);
+            gpt_context = cleanEscape(gpt_context);
+            gpt_action = cleanEscape(gpt_action);
+
             slots_prompt[slot][id] = [
                 title,
-                document.getElementById("gpt_role").value,
-                document.getElementById("gpt_context").value,
-                document.getElementById("gpt_action").value
+                gpt_role,
+                gpt_context,
+                gpt_action
             ];
 
             document.getElementById("prompt_new").value = "";
@@ -413,9 +382,16 @@
                 prompt_sel.selectedOptions[0].text = title;
             }
 
-            slots_prompt[slot][id][1] = document.getElementById("gpt_role").value;
-            slots_prompt[slot][id][2] = document.getElementById("gpt_context").value;
-            slots_prompt[slot][id][3] = document.getElementById("gpt_action").value;
+            var gpt_role = document.getElementById("gpt_role").value;
+            var gpt_context = document.getElementById("gpt_context").value;
+            var gpt_action = document.getElementById("gpt_action").value;
+            gpt_role = cleanEscape(gpt_role);
+            gpt_context = cleanEscape(gpt_context);
+            gpt_action = cleanEscape(gpt_action);
+
+            slots_prompt[slot][id][1] = gpt_role;
+            slots_prompt[slot][id][2] = gpt_context;
+            slots_prompt[slot][id][3] = gpt_action;
 
             document.getElementById("prompt_new").value = "";
         }
@@ -438,9 +414,13 @@
             var slot = slot_sel.value;
             var title = document.getElementById("prompt_new").value;
             if (title == "") { return; }
-            gpt_role = document.getElementById("gpt_role").value;
-            gpt_context = document.getElementById("gpt_context").value;
-            gpt_action = document.getElementById("gpt_action").value;
+            
+            var gpt_role = document.getElementById("gpt_role").value;
+            var gpt_context = document.getElementById("gpt_context").value;
+            var gpt_action = document.getElementById("gpt_action").value;
+            gpt_role = cleanEscape(gpt_role);
+            gpt_context = cleanEscape(gpt_context);
+            gpt_action = cleanEscape(gpt_action);
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/add_prompt', true);
@@ -475,9 +455,12 @@
             }
             var id = prompt_sel.selectedOptions[0].getAttribute("prompt_id");
 
-            gpt_role = document.getElementById("gpt_role").value;
-            gpt_context = document.getElementById("gpt_context").value;
-            gpt_action = document.getElementById("gpt_action").value;
+            var gpt_role = document.getElementById("gpt_role").value;
+            var gpt_context = document.getElementById("gpt_context").value;
+            var gpt_action = document.getElementById("gpt_action").value;
+            gpt_role = cleanEscape(gpt_role);
+            gpt_context = cleanEscape(gpt_context);
+            gpt_action = cleanEscape(gpt_action);
 
             var xhr = new XMLHttpRequest();
             xhr.open('POST', '/mod_prompt', true);
@@ -521,6 +504,96 @@
                 id: id,
             }));
         });
+
+        // var prompt_del = document.getElementById("submit_save")
+        // prompt_del.addEventListener("click", function(e)
+        // {
+        //     var gpt_role = document.getElementById("gpt_role").value;
+        //     var gpt_context = document.getElementById("gpt_context").value;
+        //     var gpt_action = document.getElementById("gpt_action").value;
+        //     gpt_role = cleanEscape(gpt_role);
+        //     gpt_context = cleanEscape(gpt_context);
+        //     gpt_action = cleanEscape(gpt_action);
+        //     document.getElementById("gpt_role").value = gpt_role;
+        //     document.getElementById("gpt_context").value = gpt_context;
+        //     document.getElementById("gpt_action").value = gpt_action;
+        // });
+
+        //
+
+        var prompt = '{{ prompt }}';
+        prompt = escapeQuotes(prompt);
+        prompt = JSON.parse(prompt);
+        console.log(prompt);
+
+        var slots_prompt = []
+        for (var i=0; i < 5; i++)
+        {
+            slots_prompt.push({});
+        }
+
+        var init_slot = 0;
+        var init_prompt = -1;
+        var slot_sel = document.getElementById("prompt_slot")
+        var prompt_sel = document.getElementById("prompt_list")
+
+        var db_prompt = null;
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/get_db_prompt', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() 
+        {
+            if (xhr.readyState === 4 && xhr.status === 200) 
+            { 
+                db_prompt = JSON.parse(xhr.responseText); 
+                console.log(db_prompt);
+
+                for (var i=0; i < prompt.length; i++)
+                {
+                    var p = prompt[i];
+                    var id = p[0];
+                    var slot = p[1]-1;
+                    var title = p[2];
+                    slots_prompt[slot][id] = [title,p[3],p[4],p[5]];
+
+                    var gpt_role = db_prompt["gpt_role"];
+                    var gpt_context = db_prompt["gpt_context"];
+                    var gpt_action = db_prompt["gpt_action"];
+
+                    if (gpt_role==p[3] && gpt_context==p[4] && gpt_action==p[5])
+                    {
+                        init_slot = slot;
+                        init_prompt = id;
+                    }
+                    else
+                    {
+                        document.getElementById("gpt_role").value = gpt_role;
+                        document.getElementById("gpt_context").value = gpt_context;
+                        document.getElementById("gpt_action").value = gpt_action;
+                    }
+                }
+
+                slot_sel.options[init_slot].selected = 'selected'; 
+                setPromptSel(init_slot, true);
+
+                slot_sel.addEventListener("change", function()
+                {
+                    var slot = slot_sel.value-1;
+                    setPromptSel(slot);
+                });
+
+                prompt_sel.addEventListener("change", function()
+                {
+                    var slot = slot_sel.value-1;
+                    var id = prompt_sel.selectedOptions[0].getAttribute("prompt_id");
+
+                    document.getElementById("gpt_role").value = slots_prompt[slot][id][1];
+                    document.getElementById("gpt_context").value = slots_prompt[slot][id][2];
+                    document.getElementById("gpt_action").value = slots_prompt[slot][id][3];
+                });
+            }
+        };
+        xhr.send(JSON.stringify({}));
 
     </script>
   </body>

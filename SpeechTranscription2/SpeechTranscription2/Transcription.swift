@@ -333,7 +333,7 @@ class Transcription
         // Setup audio engine
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
-        let useRightChannel = true
+        let useRightChannel = app_index != "1" ? true : false;
         
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
             

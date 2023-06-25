@@ -472,6 +472,9 @@ def start_parameter_loop():
                 toggle_listen = res["toggle_listen"]
                 language = res["language"]
                 model = res["model"]
+            
+            #time.sleep(1./30)
+
 
             #time.sleep(1./30)
 
@@ -674,5 +677,5 @@ if __name__ == "__main__":
     sendTranscriptionConfig2()
     webbrowser.open('http://'+ip_address+':'+str(server_port)+'/config')
 
-    app.run(debug=True, host="0.0.0.0", port=server_port)
+    app.run(debug=False, host="127.0.0.1", port=server_port)
 

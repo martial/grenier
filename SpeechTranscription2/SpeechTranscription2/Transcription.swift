@@ -235,6 +235,22 @@ class Transcription
         }
     }
     
+    func writeBufferToFile(buffer: AVAudioPCMBuffer, fileURL: URL) {
+        let audioFile: AVAudioFile
+        do {
+            audioFile = try AVAudioFile(forWriting: fileURL, settings: buffer.format.settings)
+        } catch {
+            print("Error creating audio file: \(error)")
+            return
+        }
+
+        do {
+            try audioFile.write(from: buffer)
+        } catch {
+            print("Error writing to audio file: \(error)")
+        }
+    }
+    
     func startRecording()
     {
         try? self.oscClient.send(
@@ -297,11 +313,12 @@ class Transcription
                 //{
                 
                     print("send speech")
-                
+                    print(self.transcription)
+
                     try? self.oscClient.send(
                         .message(self.log_prefix+"Send speech message, "+self.transcription+", started on processing: "+String(self.started_on_processing), values: []), to: "localhost", port: UInt16(self.log_port))
 
-                    var send_address = "/speech/";
+                    let send_address = "/speech/";
                     try? self.oscClient.send(
                         .message(send_address, values: [self.transcription, self.started_on_processing]),
                             to: "localhost",
@@ -324,7 +341,7 @@ class Transcription
         });
         
         
-        guard let monoFormat = AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 1) else {
+        guard let monoFormat = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 1) else {
              print("Error creating audio format")
              return
          }
@@ -332,9 +349,10 @@ class Transcription
 
         // Setup audio engine
         let inputNode = audioEngine.inputNode
-        let recordingFormat = inputNode.outputFormat(forBus: 0)
+        let recordingFormat = inputNode.inputFormat(forBus: 0)
         let useRightChannel = app_index != "1" ? true : false;
-        
+        print("Output sample rate: \(recordingFormat.sampleRate)")
+
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
             
             
@@ -347,11 +365,13 @@ class Transcription
                 
                 //print("channel count: \(channelCount)")
                 if channelCount == 2 {
-                    let start = useRightChannel ? 1 : 0
-                    for i in stride(from: start, to: Int(frames) * channelCount, by: 2) {
-                        let sample = data.pointee[i]
-                        audioDataArray.append(sample)
-                    }
+                    let framesInt = Int(frames)
+                   let start = useRightChannel ? framesInt : 0
+                   let end = useRightChannel ? framesInt * 2 : framesInt
+                   for i in start..<end {
+                       let sample = data.pointee[i]
+                       audioDataArray.append(sample)
+                   }
                 } else if channelCount == 1 {
                     for i in 0..<Int(frames) {
                         let sample = data.pointee[i]
@@ -359,13 +379,27 @@ class Transcription
                     }
                 }
                 
-                // Convert the array to AVAudioPCMBuffer and append it to recognitionRequest
-                let audioBuffer = AVAudioPCMBuffer(pcmFormat: monoFormat, frameCapacity: AVAudioFrameCount(audioDataArray.count))!
+
+                let monoRecordingFormat = AVAudioFormat(standardFormatWithSampleRate: recordingFormat.sampleRate, channels: 1)
+
+                guard let audioBuffer = AVAudioPCMBuffer(pcmFormat: monoRecordingFormat!, frameCapacity: AVAudioFrameCount(audioDataArray.count)) else {
+                    return
+                }
+                
                 audioBuffer.frameLength = AVAudioFrameCount(audioDataArray.count)
                 audioBuffer.floatChannelData?.pointee.initialize(from: &audioDataArray, count: audioDataArray.count)
                // print("Audio buffer prepared")
                 
+                //let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
                 
+                //let timestamp = Date().timeIntervalSince1970
+                //let fileName = "audioData_\(timestamp).caf"
+                //let fileURL = documentsPath.appendingPathComponent(fileName)
+                
+                //self.writeBufferToFile(buffer: audioBuffer, fileURL: fileURL)
+                //print(fileURL)
+                
+                print("hello")
                 recognitionRequest.append(audioBuffer)
             }
         }
@@ -464,7 +498,7 @@ class Transcription
             print("AUDIO ID")
             print(self.audio_input_ids[self.mic_index])
 
-            var engine = AVAudioEngine()
+            let engine = AVAudioEngine()
             let inputNode: AVAudioInputNode = engine.inputNode
             // get the low level input audio unit from the engine:
             guard let inputUnit: AudioUnit = inputNode.audioUnit else { return }

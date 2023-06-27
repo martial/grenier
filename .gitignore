@@ -36,6 +36,8 @@ nicolas/macos-x86_64
 #
 applis/
 server/build
+server/models.json
+
 grenier-appli.sh
 
 # React

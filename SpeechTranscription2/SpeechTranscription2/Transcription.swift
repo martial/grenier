@@ -45,6 +45,8 @@ class Transcription
     
     var text1 : NSTextField?
     var text2 : NSTextField?
+    
+    var isRightChannelOn : Bool = false;
 
     init(name: String, audio_input_ids: [UInt32], app_index: String, mic_button: NSPopUpButton, text1: NSTextField, text2: NSTextField)
     {
@@ -350,13 +352,72 @@ class Transcription
         // Setup audio engine
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.inputFormat(forBus: 0)
-        let useRightChannel = app_index != "1" ? true : false;
         print("Output sample rate: \(recordingFormat.sampleRate)")
+        
+       
 
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
             
             
+
             let channelCount = Int(buffer.format.channelCount)
+            var isLeftOn = true
+            var isRightOn = true
+            
+            if(channelCount > 1) {
+                let frames = buffer.frameLength
+                
+                let leftChannelData = buffer.floatChannelData![0]
+                let rightChannelData = buffer.floatChannelData![1]
+                
+                var leftVolume: Float = 0.0
+                var rightVolume: Float = 0.0
+                
+                // Calculate the volume for the left channel
+                for frame in 0..<Int(frames) {
+                    let leftData = leftChannelData[frame]
+                    leftVolume += leftData * leftData
+                    
+                    let rightData = rightChannelData[frame]
+                    rightVolume += rightData * rightData
+                }
+                
+                leftVolume /= Float(frames)
+                leftVolume = sqrt(leftVolume)
+                
+                rightVolume /= Float(frames)
+                rightVolume = sqrt(rightVolume)
+                
+                isLeftOn = leftVolume > 0.0001
+                isRightOn = rightVolume > 0.0001
+                
+                
+                if(!self.isRightChannelOn && isRightOn ) {
+                    self.isRightChannelOn = true;
+                    DispatchQueue.main.async {
+                        self.stopRecording()
+                        Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
+                            self.startRecording();
+                            print("start recording")
+                        }
+                    }
+                }
+                if(self.isRightChannelOn && !isRightOn) {
+                    DispatchQueue.main.async {
+                        self.isRightChannelOn = false;
+                        self.stopRecording()
+                        Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
+                            self.startRecording();
+                            print("start recording")
+                        }
+                    }
+                    
+                }
+                
+            }
+
+            // get volume
+            
             let frames = buffer.frameLength
             //print("channel count: \(channelCount), frames: \(frames)")
 
@@ -366,8 +427,8 @@ class Transcription
                 //print("channel count: \(channelCount)")
                 if channelCount == 2 {
                     let framesInt = Int(frames)
-                   let start = useRightChannel ? framesInt : 0
-                   let end = useRightChannel ? framesInt * 2 : framesInt
+                   let start = self.isRightChannelOn ? framesInt : 0
+                   let end = self.isRightChannelOn ? framesInt * 2 : framesInt
                    for i in start..<end {
                        let sample = data.pointee[i]
                        audioDataArray.append(sample)
@@ -391,16 +452,15 @@ class Transcription
                // print("Audio buffer prepared")
                 
                 //let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                
                 //let timestamp = Date().timeIntervalSince1970
                 //let fileName = "audioData_\(timestamp).caf"
                 //let fileURL = documentsPath.appendingPathComponent(fileName)
-                
                 //self.writeBufferToFile(buffer: audioBuffer, fileURL: fileURL)
                 //print(fileURL)
                 
-                print("hello")
-                recognitionRequest.append(audioBuffer)
+                if(isRightOn || isLeftOn ) {
+                    recognitionRequest.append(audioBuffer)
+                }
             }
         }
         

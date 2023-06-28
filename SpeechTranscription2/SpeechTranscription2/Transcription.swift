@@ -74,6 +74,34 @@ class Transcription
             kAudioUnitScope_Global, 0, &inputDeviceID, UInt32(MemoryLayout<AudioDeviceID>.size))
     }
     
+    func setPorts(mic_id:Int ) {
+        
+        guard let path = Bundle.main.path(forResource: "server-config", ofType: "json") else {
+            print("Failed to find JSON file")
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: URL(fileURLWithPath: path), options: .mappedIfSafe)
+            let json = try JSONSerialization.jsonObject(with: data, options: [])
+            if let dictionary = json as? [String: Any] {
+                var port_id = "ports";
+                if (mic_id == 1) { port_id = "ports2" }
+
+                if let ports = dictionary[port_id] as? [String: Int]
+                {
+                    if let spc = ports["transcript_to_server"] {
+                        server_port_client = spc;
+                    }
+                }
+            }
+        }
+        catch
+        {
+            print("Failed to load JSON file: \(error.localizedDescription)")
+        }
+    }
+    
     func load()
     {
         guard let path = Bundle.main.path(forResource: "server-config", ofType: "json") else {
@@ -88,36 +116,30 @@ class Transcription
                 
                 
                 var port_id = "ports";
-                if (app_index != "1") { port_id += app_index }
-
-                if let ports = dictionary[port_id] as? [String: Int]
-                {
-                    if let spc = ports["transcript_to_server"] as? Int {
-                        server_port_client = spc;
-                    }
-                    
-                    if let sps = ports["server_to_transcript"] as? Int {
+                if let ports = dictionary[port_id] as? [String: Int] {
+                    if let sps = ports["server_to_transcript"] {
                         server_port_server = sps;
+                       
                     }
                 }
                 
-                if let log = dictionary["log"] as? [String: Int]
-                {
-                    if let lp = log["port"] as? Int {
+                if let log = dictionary["log"] as? [String: Int] {
+                    if let lp = log["port"] {
                         log_port = lp;
                     }
                 }
-                
-                //self.server_port_client = dictionary["ports"]["transcript_to_server"]
-                //self.server_port_server = dictionary["ports"]["server_to_transcript"]
 
-                // Do something with the dictionary here
             }
         }
-        catch
-        {
+        catch {
             print("Failed to load JSON file: \(error.localizedDescription)")
         }
+        
+        setPorts(mic_id: 0)
+        
+    
+
+        
         
         oscServer = OSCServer(port:UInt16(server_port_server));
         
@@ -316,6 +338,8 @@ class Transcription
                 
                     print("send speech")
                     print(self.transcription)
+                    print(self.server_port_client)
+                    print(self.isRightChannelOn)
 
                     try? self.oscClient.send(
                         .message(self.log_prefix+"Send speech message, "+self.transcription+", started on processing: "+String(self.started_on_processing), values: []), to: "localhost", port: UInt16(self.log_port))
@@ -347,15 +371,12 @@ class Transcription
              print("Error creating audio format")
              return
          }
-         print("Mono format created: \(monoFormat)")
 
         // Setup audio engine
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.inputFormat(forBus: 0)
-        print("Output sample rate: \(recordingFormat.sampleRate)")
         
        
-
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
             
             
@@ -363,7 +384,7 @@ class Transcription
             let channelCount = Int(buffer.format.channelCount)
             var isLeftOn = true
             var isRightOn = true
-            
+                        
             if(channelCount > 1) {
                 let frames = buffer.frameLength
                 
@@ -395,6 +416,7 @@ class Transcription
                 if(!self.isRightChannelOn && isRightOn ) {
                     self.isRightChannelOn = true;
                     DispatchQueue.main.async {
+                        self.setPorts(mic_id: self.isRightChannelOn ? 1 : 0 )
                         self.stopRecording()
                         Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
                             self.startRecording();
@@ -405,6 +427,7 @@ class Transcription
                 if(self.isRightChannelOn && !isRightOn) {
                     DispatchQueue.main.async {
                         self.isRightChannelOn = false;
+                        self.setPorts(mic_id: self.isRightChannelOn ? 1 : 0 )
                         self.stopRecording()
                         Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
                             self.startRecording();
@@ -497,7 +520,8 @@ class Transcription
             
                 try? self.oscClient.send(
                     .message(self.log_prefix+"Send end speech message, started on processing: "+String(self.started_on_processing), values: []), to: "localhost", port: UInt16(self.log_port))
-
+                
+            
                 var send_address = "/end-speech/";
                 try? self.oscClient.send(
                     .message(send_address, values: [self.started_on_processing]),
@@ -576,7 +600,7 @@ class Transcription
         }
 
         
-        var send_address = "/mic-index/";
+        let send_address = "/mic-index/";
         try? self.oscClient.send(
             .message(send_address, values: [self.mic_index]),
                 to: "localhost", // remote IP address or hostname

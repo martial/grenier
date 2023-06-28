@@ -172,7 +172,7 @@ def handle_speech_message2(address, *args):
         log_client.send_message("/log/", "Stop 2")
         gpt2.setEndIt(True)
 
-    elif (gpt2.getStatus() == "waiting" and not started_on_processing and transcription != ''):
+    elif ( transcription != ''):
         
         log_client.send_message("/log/", "Send 2 to promp")
         osc_message = transcription.encode('utf-8')

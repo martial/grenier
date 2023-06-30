@@ -677,5 +677,5 @@ if __name__ == "__main__":
     sendTranscriptionConfig2()
     webbrowser.open('http://'+ip_address+':'+str(server_port)+'/config')
 
-    app.run(debug=False, host="127.0.0.1", port=server_port)
+    app.run(debug=False, host="0.0.0.0", port=server_port)
 

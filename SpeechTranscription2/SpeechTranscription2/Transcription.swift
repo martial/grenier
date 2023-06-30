@@ -47,6 +47,8 @@ class Transcription
     var text2 : NSTextField?
     
     var isRightChannelOn : Bool = false;
+    var isLeftChannelOn : Bool = false;
+
 
     init(name: String, audio_input_ids: [UInt32], app_index: String, mic_button: NSPopUpButton, text1: NSTextField, text2: NSTextField)
     {
@@ -354,7 +356,8 @@ class Transcription
                 //}
                 
                 // Réinitialiser le minuteur après l'ajout de chaque audio buffer
-                self.restartSilenceTimer()
+                    self.restartSilenceTimer()
+                
                 
             } else if let error = error {
                 //if (self.running) {
@@ -412,26 +415,81 @@ class Transcription
                 isLeftOn = leftVolume > 0.0001
                 isRightOn = rightVolume > 0.0001
                 
+                DispatchQueue.main.async {
+                    let send_address = "/mic-volume/";
+                    try? self.oscClient.send(
+                        .message(send_address, values: [leftVolume, rightVolume]),
+                            to: "localhost",
+                        port: 1234
+                        )
+                   
+                }
+                
+                
+                if(!self.isLeftChannelOn && isLeftOn ) {
+                    self.isLeftChannelOn = true;
+                    DispatchQueue.main.async {
+                        let send_address = "/mic-status/";
+                        try? self.oscClient.send(
+                            .message(send_address, values: [0, self.isLeftChannelOn]),
+                                to: "localhost",
+                            port: 1234
+                            )
+                    }
+                }
+                
+                if(self.isLeftChannelOn && !isLeftOn) {
+                    self.isLeftChannelOn = false;
+                    DispatchQueue.main.async {
+                        let send_address = "/mic-status/";
+                        try? self.oscClient.send(
+                            .message(send_address, values: [0, self.isLeftChannelOn]),
+                                to: "localhost",
+                            port: 1234
+                            )
+                    }
+                }
+                
                 
                 if(!self.isRightChannelOn && isRightOn ) {
                     self.isRightChannelOn = true;
                     DispatchQueue.main.async {
+                        
+                        var send_address = "/end-speech/";
+                        try? self.oscClient.send(
+                            .message(send_address, values: [self.started_on_processing]),
+                                to: "localhost", // remote IP address or hostname
+                            port: UInt16(self.server_port_client) // standard OSC port but can be changed
+                        )
+
+                        
+                        send_address = "/mic-status/";
+                        try? self.oscClient.send(
+                            .message(send_address, values: [1, self.isRightChannelOn]),
+                                to: "localhost",
+                            port: 1234
+                            )
+                        
                         self.setPorts(mic_id: self.isRightChannelOn ? 1 : 0 )
                         self.stopRecording()
                         Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
                             self.startRecording();
-                            print("start recording")
                         }
                     }
                 }
                 if(self.isRightChannelOn && !isRightOn) {
                     DispatchQueue.main.async {
                         self.isRightChannelOn = false;
+                        let send_address = "/mic-status/";
+                        try? self.oscClient.send(
+                            .message(send_address, values: [1, self.isRightChannelOn]),
+                                to: "localhost",
+                            port: 1234
+                            )
                         self.setPorts(mic_id: self.isRightChannelOn ? 1 : 0 )
                         self.stopRecording()
                         Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in
                             self.startRecording();
-                            print("start recording")
                         }
                     }
                     
@@ -449,7 +507,7 @@ class Transcription
                 
                 //print("channel count: \(channelCount)")
                 if channelCount == 2 {
-                    let framesInt = Int(frames)
+                   let framesInt = Int(frames)
                    let start = self.isRightChannelOn ? framesInt : 0
                    let end = self.isRightChannelOn ? framesInt * 2 : framesInt
                    for i in start..<end {
@@ -503,6 +561,8 @@ class Transcription
     func restartSilenceTimer()
     {
         // Réinitialiser le minuteur pour effacer la variable de transcription si un nouveau audio buffer est ajouté avant la fin du minuteur
+        
+       
         self.silenceTimer?.invalidate()
         self.startSilenceTimer()
     }
@@ -516,7 +576,7 @@ class Transcription
                 self.transcription = "";
                 self.stopRecording()
                             
-                print("send end")
+                //print("send end")
             
                 try? self.oscClient.send(
                     .message(self.log_prefix+"Send end speech message, started on processing: "+String(self.started_on_processing), values: []), to: "localhost", port: UInt16(self.log_port))

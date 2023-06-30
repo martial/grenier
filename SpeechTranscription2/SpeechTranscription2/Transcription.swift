@@ -611,8 +611,19 @@ class Transcription
         let inputNode = audioEngine.inputNode
         inputNode.removeTap(onBus: 0)
         
+        
+      
+        
         recognitionRequest?.endAudio()
-        recognitionTask?.cancel()
+        var close = true
+        guard let task = recognitionTask else {
+            close = false
+            return
+        }
+        if(close) {
+            task.cancel()
+            task.finish()
+        }
         recognitionRequest = nil
         recognitionTask = nil
 

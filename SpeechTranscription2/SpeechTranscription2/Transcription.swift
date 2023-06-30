@@ -630,47 +630,47 @@ class Transcription
         text1?.stringValue = "stop recording"
 
         running = false;
-
-        recognitionRequest?.endAudio()
-        audioEngine.stop()
         
-        let inputNode = audioEngine.inputNode
-        inputNode.removeTap(onBus: 0)
+        DispatchQueue.main.async { [unowned self] in
+            
+            recognitionRequest?.endAudio()
+            audioEngine.stop()
+            
+            guard let task = self.recognitionTask else {
+                self.silenceTimer?.invalidate()
+                return
 
-        var close = true
-        guard let task = recognitionTask else {
-            close = false
-            return
-        }
-        
-        print("stop recording")
-
-        if(close) {
-            print("closing")
-            task.cancel()
-            //task.finish()
-        }
-        
-        var t: DispatchWorkItem?
-
-        // Define your task
-        t = DispatchWorkItem {
-            while true {
-                if t?.isCancelled == true {
-                    break
-                }
-                Thread.sleep(forTimeInterval: 0.1)
             }
+            task.cancel()
+            task.finish()
+            
+            let inputNode = audioEngine.inputNode
+            inputNode.removeTap(onBus: 0)
+
+            var close = true
+            guard let task = recognitionTask else {
+                close = false
+                return
+            }
+            
+            print("stop recording")
+
+            if(close) {
+                print("closing")
+                task.cancel()
+                //task.finish()
+            }
+            
+
+            recognitionRequest = nil
+            recognitionTask = nil
+
+            // Arrêter le minuteur de silence
+            self.silenceTimer?.invalidate()
         }
 
-        // Schedule the task on a background queue
-        DispatchQueue.global().async(execute: t!)
-
-        recognitionRequest = nil
-        recognitionTask = nil
-
-        // Arrêter le minuteur de silence
-        self.silenceTimer?.invalidate()
+     
+     
     }
     
     func setAudioInput(audio_input_index: Int)

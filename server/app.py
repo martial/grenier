@@ -65,13 +65,17 @@ log_client = udp_client.SimpleUDPClient(ip_address, log_port)
 
 
 gpt = chatGPT(ip_address,transcript_port_client, 1, log_client)
-gpt.appendHistory({"role": "system", "content": gpt_role})
-gpt.appendHistory({"role": "system", "content": gpt_context})
-gpt.appendHistory({"role": "system", "content": gpt_action})
+prompt = gpt_role + gpt_context + gpt_action
+gpt.appendHistory({"role": "system", "content": prompt})
+
+#gpt.appendHistory({"role": "system", "content": gpt_role})
+#gpt.appendHistory({"role": "system", "content": gpt_context})
+#gpt.appendHistory({"role": "system", "content": gpt_action})
 gpt2 = chatGPT(ip_address,transcript_port_client2, 2, log_client)
-gpt2.appendHistory({"role": "system", "content": gpt_role})
-gpt2.appendHistory({"role": "system", "content": gpt_context})
-gpt2.appendHistory({"role": "system", "content": gpt_action})
+gpt2.appendHistory({"role": "system", "content": prompt})
+#gpt2.appendHistory({"role": "system", "content": gpt_role})
+#gpt2.appendHistory({"role": "system", "content": gpt_context})
+#gpt2.appendHistory({"role": "system", "content": gpt_action})
 
 playing_mode = "play"
 playing_mode_2 = "play"
@@ -424,12 +428,16 @@ def start_parameter_loop():
                 gpt_context = res["gpt_context"]
                 gpt_action = res["gpt_action"]
                 gpt_temp = res["gpt_temp"]
-                gpt.appendHistory({"role": "system", "content": gpt_role})
-                gpt.appendHistory({"role": "system", "content": gpt_context})
-                gpt.appendHistory({"role": "system", "content": gpt_action})
-                gpt2.appendHistory({"role": "system", "content": gpt_role})
-                gpt2.appendHistory({"role": "system", "content": gpt_context})
-                gpt2.appendHistory({"role": "system", "content": gpt_action})
+
+                #concatenate role, context and action
+                prompt = gpt_role + gpt_context + gpt_action
+                gpt.appendHistory({"role": "system", "content": prompt})
+                #gpt.appendHistory({"role": "system", "content": gpt_role})
+                #gpt.appendHistory({"role": "system", "content": gpt_context})
+                #gpt.appendHistory({"role": "system", "content": gpt_action})
+                gpt2.appendHistory({"role": "system", "content": prompt})
+                #gpt2.appendHistory({"role": "system", "content": gpt_context})
+                #gpt2.appendHistory({"role": "system", "content": gpt_action})
 
             #check if reset history
             res = getDBReset1()
@@ -448,9 +456,13 @@ def start_parameter_loop():
             if (res == 1):
                 gpt2.setEndIt(True)
                 gpt2.resetHistory()
-                gpt2.appendHistory({"role": "system", "content": gpt_role})
-                gpt2.appendHistory({"role": "system", "content": gpt_context})
-                gpt2.appendHistory({"role": "system", "content": gpt_action})
+                  prompt = gpt_role + gpt_context + gpt_action
+                gpt.appendHistory({"role": "system", "content": prompt})
+                gpt2.appendHistory({"role": "system", "content": prompt})
+
+                #gpt2.appendHistory({"role": "system", "content": gpt_role})
+                #gpt2.appendHistory({"role": "system", "content": gpt_context})
+                #gpt2.appendHistory({"role": "system", "content": gpt_action})
                 setDBReset2(0)
                 osc_address = "/reset/"
                 osc_message = ""

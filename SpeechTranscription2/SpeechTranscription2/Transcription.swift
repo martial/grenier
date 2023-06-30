@@ -302,7 +302,7 @@ class Transcription
 
         
         // Setup recognition task
-        recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest, resultHandler: { result, error in
+        recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest, resultHandler: { [self] result, error in
 
             if ( !self.running ) { return; }
             
@@ -362,6 +362,31 @@ class Transcription
             } else if let error = error {
                 //if (self.running) {
                 print("Recognition task error: \(error)")
+                print("There was an error: \(error.localizedDescription)")
+                
+                if speechRecognizer?.isAvailable == false {
+                    print("Speech recognizer not available")
+                }
+                
+                let authStatus = SFSpeechRecognizer.authorizationStatus()
+                switch authStatus {
+                case .notDetermined:
+                    print("not determined")
+                    // Authorization has not been determined.
+                case .denied:
+                    print("denied")
+
+                    // The user has denied authorization.
+                case .restricted:
+                    print("restricted")
+                    // The device is not permitted to access Speech Recognition.
+                case .authorized:
+                    print("ok")
+
+                    // The user has authorized access to speech recognition.
+                default:
+                    break
+                }
                 
                 try? self.oscClient.send(
                     .message(self.log_prefix+"Recognition task error, \(error)", values: []), to: "localhost", port: UInt16(self.log_port))

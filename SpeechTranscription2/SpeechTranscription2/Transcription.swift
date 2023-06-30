@@ -361,7 +361,7 @@ class Transcription
                 
             } else if let error = error {
                 //if (self.running) {
-                    print("Recognition task error: \(error)")
+                print("Recognition task error: \(error)")
                 
                 try? self.oscClient.send(
                     .message(self.log_prefix+"Recognition task error, \(error)", values: []), to: "localhost", port: UInt16(self.log_port))
@@ -606,24 +606,41 @@ class Transcription
 
         running = false;
 
+        recognitionRequest?.endAudio()
         audioEngine.stop()
-
+        
         let inputNode = audioEngine.inputNode
         inputNode.removeTap(onBus: 0)
-        
-        
-      
-        
-        recognitionRequest?.endAudio()
+
         var close = true
         guard let task = recognitionTask else {
             close = false
             return
         }
+        
+        print("stop recording")
+
         if(close) {
+            print("closing")
             task.cancel()
-            task.finish()
+            //task.finish()
         }
+        
+        var t: DispatchWorkItem?
+
+        // Define your task
+        t = DispatchWorkItem {
+            while true {
+                if t?.isCancelled == true {
+                    break
+                }
+                Thread.sleep(forTimeInterval: 0.1)
+            }
+        }
+
+        // Schedule the task on a background queue
+        DispatchQueue.global().async(execute: t!)
+
         recognitionRequest = nil
         recognitionTask = nil
 

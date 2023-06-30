@@ -456,7 +456,7 @@ def start_parameter_loop():
             if (res == 1):
                 gpt2.setEndIt(True)
                 gpt2.resetHistory()
-                  prompt = gpt_role + gpt_context + gpt_action
+                prompt = gpt_role + gpt_context + gpt_action
                 gpt.appendHistory({"role": "system", "content": prompt})
                 gpt2.appendHistory({"role": "system", "content": prompt})
 

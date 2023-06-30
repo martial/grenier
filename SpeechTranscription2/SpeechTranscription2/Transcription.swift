@@ -480,6 +480,8 @@ class Transcription
                     self.isRightChannelOn = true;
                     DispatchQueue.main.async {
                         
+                        self.transcription = "";
+
                         var send_address = "/end-speech/";
                         try? self.oscClient.send(
                             .message(send_address, values: [self.started_on_processing]),
@@ -598,9 +600,10 @@ class Transcription
         
             //if ( self.transcription != "" )
             //{
-                self.transcription = "";
                 self.stopRecording()
-                            
+            /*
+                self.transcription = "";
+
                 //print("send end")
             
                 try? self.oscClient.send(
@@ -613,6 +616,8 @@ class Transcription
                         to: "localhost", // remote IP address or hostname
                     port: UInt16(self.server_port_client) // standard OSC port but can be changed
                 )
+             
+             */
 
                 
                 Timer.scheduledTimer(withTimeInterval: self.restart_timeout, repeats: false) { timer in

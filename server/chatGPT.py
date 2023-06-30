@@ -123,7 +123,7 @@ class chatGPT:
                 osc_address = "/chat/"
                 pde_client.send_message(osc_address, osc_message)
             
-            self.setStatus("will_waiting")
+            #self.setStatus("waiting")
             self.setEndIt(False)
             self.resetHistory()
             self.appendHistory({"role": "system", "content": gpt_role})
@@ -144,7 +144,7 @@ class chatGPT:
 
             if (send_to_pde):
                 pde_client.send_message(osc_address, osc_message)
-                self.setStatus("will_waiting")
+                self.setStatus("waiting")
                 self.setEndIt(False)
 
             return

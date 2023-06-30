@@ -27,6 +27,14 @@ class chatGPT:
     def appendHistory(self,data):
         self.conversation_history.append(data)
 
+    def flush(self, nItemsToKeep):
+        self.conversation_history = self.conversation_history[-nItemsToKeep:]
+        #print all elements in the list
+        for elem in self.conversation_history:
+            print(elem)
+
+
+
     def getHistory(self):
         return self.conversation_history
 
@@ -89,6 +97,7 @@ class chatGPT:
         self.setStatus("processing")
     
         print("REQUETTE "+str(self.class_id)+" "+prompt)
+        print(send_to_pde)
 
         if (send_to_pde):
             osc_address = '/chat/'
@@ -100,7 +109,6 @@ class chatGPT:
         
         osc_message = 'processing'
         self.sendStatusMessage(osc_message)
-
         self.appendHistory({"role": "user", "content": prompt})
 
         try:
@@ -177,8 +185,8 @@ class chatGPT:
             full_reply_content = ''.join([m.get('content', '') for m in collected_messages])
 
             # We stop the processing loop if we get a "stop" message
-            if self.getEndIt(): 
-                break
+            #if self.getEndIt(): 
+                #break
 
             if(talk == 1):
                 phrases = re.split(r'[\.\?!]\s*', full_reply_content.strip())

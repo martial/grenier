@@ -431,6 +431,7 @@ def start_parameter_loop():
 
                 #concatenate role, context and action
                 prompt = gpt_role + gpt_context + gpt_action
+                gpt.flush(4)
                 gpt.appendHistory({"role": "system", "content": prompt})
                 #gpt.appendHistory({"role": "system", "content": gpt_role})
                 #gpt.appendHistory({"role": "system", "content": gpt_context})
@@ -500,6 +501,7 @@ app.debug = True # needed to scss to compile
 # Scss(app, static_dir='static/css/', asset_dir='static/scss/')
 
 @app.route('/config')
+@app.route('/front')
 def config(model= None, talk = None, toggle_listen = None, language=None, gpt_role=None, gpt_context=None, gpt_action=None, gpt_temp=None, transcription_silence=None, transcription_restart=None, playing_mode=None, playing_mode_2=None):
 
     params_set = model and talk and toggle_listen and language and gpt_role and gpt_context and gpt_action and gpt_temp and transcription_silence and transcription_restart
@@ -545,6 +547,10 @@ def config(model= None, talk = None, toggle_listen = None, language=None, gpt_ro
 
     prompt = getPromptDB()
 
+    showall = True
+    if 'front' in request.url:
+        showall = False
+
     return render_template('index.html', 
         gpt_role=gpt_role, 
         gpt_context=gpt_context, 
@@ -559,7 +565,8 @@ def config(model= None, talk = None, toggle_listen = None, language=None, gpt_ro
         model=model,
         playing_mode=playing_mode,
         playing_mode_2=playing_mode_2,
-        prompt=prompt
+        prompt=prompt,
+        showall=showall
     )
 
 @app.route('/submit_form', methods=['POST'])
@@ -689,5 +696,5 @@ if __name__ == "__main__":
     sendTranscriptionConfig2()
     webbrowser.open('http://'+ip_address+':'+str(server_port)+'/config')
 
-    app.run(debug=False, host="0.0.0.0", port=server_port)
+    app.run(debug=True, host="0.0.0.0", port=server_port)
 

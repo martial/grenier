@@ -24,14 +24,23 @@
                             <option value="en" {% if language == 'en' %} selected {% endif %}>English</option>
                         </select>
                     </div>    
+
+                    {% if showall %}
                     <div class="input">
+                    {% else %}
+                    <div class="input" style="display: none;">
+                    {% endif %}
                         <label for="gpt_temp">GPT Temperature <span class="hint">(min=0, max=1)</span></label>
                         <input type="number" id="gpt_temp" name="gpt_temp" step=0.01 min=0 max=1 value="{{ gpt_temp }}" required>
-                    </div>            
+                    </div>   
                 </div>
 
-
-                <div class="row">
+               
+                    {% if showall %}
+                    <div class="raw">
+                    {% else %}
+                    <div class="raw" style="display: none;">
+                    {% endif %}
                     <div class="input">
                         <label for="talk">Talk </label>
                         <select name="talk" id="talk" >
@@ -39,7 +48,11 @@
                             <option value="0" {% if not talk  %} selected {% endif %}>No</option>
                         </select>
                     </div>
+                    {% if showall %}
                     <div class="input">
+                    {% else %}
+                    <div class="input" style="display: none;">
+                    {% endif %}
                         <label for="transcription_silence">Transcription Silence Time<span class="hint">(min=0.5, max=60)</span></label>
                         <input type="number" id="transcription_silence" name="transcription_silence" step=0.01 min=0.5 max=60 value="{{ transcription_silence }}" required>
                     </div>
@@ -53,20 +66,20 @@
                             <option value="gpt-3.5-turbo-16k" {% if model == 'gpt-3.5-turbo-16k' %} selected {% endif %}>gpt-3.5-turbo-16k</option>
                             <option value="gpt-4" {% if model == 'gpt-4' %} selected {% endif %}>gpt-4</option>
                             <option value="gpt-4-32k" {% if model == 'gpt-4-32k' %} selected {% endif %}>gpt-4-32k</option>
-
-                            
-                            
-
-                            	
                         </select>
                     </div>
+                    {% if showall %}
                     <div class="input">
+                    {% else %}
+                    <div class="input" style="display: none;">
+                    {% endif %}
                         <label for="transcription_restart">Transcription Restart Delay <span class="hint">(min=0.1, max=1)</span></label>
                         <input type="number" id="transcription_restart" name="transcription_restart" step=0.01 min=0.1 max=1 value="{{ transcription_restart }}" required>
                     </div>
                 </div>
                 
-                <div class="row">
+               
+                <div class="row"  style="display: none;">
                     <div class="input">
                         <label for="toggle_listen">Toggle Listen </label>
                         <select name="toggle_listen" id="toggle_listen" >
@@ -75,6 +88,7 @@
                         </select>
                     </div>
                 </div>
+           
 
                 <div class="row">
                     <div class="input">
@@ -94,7 +108,11 @@
                     </div>
                 </div>
 
-                <div class="row">
+                {% if showall %}
+                    <div class="row">
+                    {% else %}
+                    <div class="row" style="display: none;">
+                    {% endif %}
                     <div class="input">
                         <label for="prompt_new">New (name):</label>
                         <input type="text" id="prompt_new" name="prompt_new">
@@ -146,28 +164,15 @@
             <form  id="pause" method="POST" action="{{ url_for('pause') }}"  class="{{ playing_mode }}">
                 <input type="submit" value="Pause">
             </form>
-
-            <h3>Toggle On Mode</h3>
-            <form id="toggle-listen-1" >
-                <input id="toggle-listen-input-1" value="Toggle listen 1">
-            </form>
-            <form id="toggle-listen-2" >
-                <input id="toggle-listen-input-2" value="Toggle listen 2">
-            </form>
-
             <h3>General</h3>
             <form id="stop-1" >
                 <input id="stop-input-1" value="Stop 1">
             </form>
-            <form id="stop-2" >
-                <input id="stop-input-2" value="Stop 2">
-            </form>
+          
             <form id="reset-conv-1" >
                 <input id="reset-conv-input-1" value="End/Reset conversation 1">
             </form>
-            <form id="reset-conv-2" >
-                <input id="reset-conv-input-2" value="End/Reset conversation 2">
-            </form>
+          
 
         </div>
 
@@ -175,6 +180,11 @@
 
     <script>
 
+        {% if showAll %}
+            var showAll = true;
+        {% else %}
+        var showAll = false;
+        {% endif %}
         var up = document.getElementById("updated").innerHTML;
         if ( up == '1') 
         {
@@ -185,6 +195,7 @@
             }, 2000);
         }
 
+        /*
         document.getElementById("toggle-listen-input-1").addEventListener('mousedown', function()
         {
             var xhr = new XMLHttpRequest();
@@ -195,6 +206,7 @@
             };
             xhr.send(JSON.stringify({ data: "on" }));
         });
+        
 
         document.getElementById("toggle-listen-input-1").addEventListener('mouseup', function()
         {
@@ -206,7 +218,7 @@
             };
             xhr.send(JSON.stringify({ data: "off" }));
         });
-
+      
         document.getElementById("toggle-listen-input-2").addEventListener('mousedown', function()
         {
             var xhr = new XMLHttpRequest();
@@ -228,7 +240,10 @@
             };
             xhr.send(JSON.stringify({ data: "off" }));
         });
+          */
 
+
+        /*
         document.getElementById("stop-input-1").addEventListener('click', function()
         {
             var xhr = new XMLHttpRequest();
@@ -250,6 +265,7 @@
             };
             xhr.send();
         });
+        */
         
 
         document.getElementById("reset-conv-input-1").addEventListener('click', function()
@@ -263,6 +279,7 @@
             xhr.send();
         });
 
+        /*
         document.getElementById("reset-conv-input-2").addEventListener('click', function()
         {
             var xhr = new XMLHttpRequest();
@@ -273,6 +290,7 @@
             };
             xhr.send();
         });
+        */
 
         //
 

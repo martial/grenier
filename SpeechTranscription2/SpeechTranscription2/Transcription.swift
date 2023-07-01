@@ -437,8 +437,12 @@ class Transcription
                 rightVolume /= Float(frames)
                 rightVolume = sqrt(rightVolume)
                 
-                isLeftOn = leftVolume > 0.0001
-                isRightOn = rightVolume > 0.0001
+                leftVolume *= 2.0
+                rightVolume *= 2.0
+                
+                
+                isLeftOn = leftVolume > 0.00005
+                isRightOn = rightVolume > 0.00005
                 
                 DispatchQueue.main.async {
                     let send_address = "/mic-volume/";
@@ -461,10 +465,12 @@ class Transcription
                             port: 1234
                             )
                     }
-                }
+                } else
                 
                 if(self.isLeftChannelOn && !isLeftOn) {
                     self.isLeftChannelOn = false;
+                    print("left")
+
                     DispatchQueue.main.async {
                         let send_address = "/mic-status/";
                         try? self.oscClient.send(
@@ -473,13 +479,14 @@ class Transcription
                             port: 1234
                             )
                     }
-                }
+                } else
                 
                 
                 if(!self.isRightChannelOn && isRightOn ) {
                     self.isRightChannelOn = true;
                     DispatchQueue.main.async {
                         
+                        print("right")
                         self.transcription = "";
 
                         var send_address = "/end-speech/";
@@ -503,7 +510,7 @@ class Transcription
                             self.startRecording();
                         }
                     }
-                }
+                } else
                 if(self.isRightChannelOn && !isRightOn) {
                     DispatchQueue.main.async {
                         self.isRightChannelOn = false;
@@ -566,7 +573,7 @@ class Transcription
                 //self.writeBufferToFile(buffer: audioBuffer, fileURL: fileURL)
                 //print(fileURL)
                 
-                if(isRightOn || isLeftOn ) {
+                if(  isLeftOn ) {
                     recognitionRequest.append(audioBuffer)
                 }
             }
@@ -601,7 +608,8 @@ class Transcription
             //if ( self.transcription != "" )
             //{
                 self.stopRecording()
-            /*
+                
+                /*
                 self.transcription = "";
 
                 //print("send end")

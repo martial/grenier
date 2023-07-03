@@ -80,7 +80,7 @@ form label .hint {
 	font-size: 0.75rem;
 	line-height: 1;
 }
-form input, form select {
+form input, form select, form button {
 	font-family: sans-serif;
 	font-size: 1rem;
 	line-height: 1.25;
@@ -102,8 +102,18 @@ form textarea {
 	font-size: 1rem;
 	line-height: 1.25;
 }
+
+button {
+	background-color: black;
+	color: white;
+	border: 1px solid black;
+	box-shadow: none;
+	cursor: pointer;
+    width: 50%;
+}
+
 form input[type="submit"],
-.button {
+button {
 	background-color: black;
 	color: white;
 	border: 1px solid black;
@@ -112,7 +122,7 @@ form input[type="submit"],
     width: 50%;
 }
 form input[type="submit"]:hover,
-.button:hover {
+button:hover {
 	background-color: white;
 	color: black;
 }

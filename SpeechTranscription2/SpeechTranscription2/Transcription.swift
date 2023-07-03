@@ -141,7 +141,8 @@ class Transcription
         oscServer = OSCServer(port:UInt16(server_port_server));
         
         self.oscServer.setHandler { message, timeTag in
-
+            
+            print( message.addressPattern.description)
             if ( message.addressPattern.description == "/config/" )
             {
                 print("---- GET CONFIG")
@@ -436,7 +437,7 @@ class Transcription
                 isLeftOn = leftVolume > 0.00005
                 isRightOn = rightVolume > 0.00005
                 
-              //  print(isLeftOn)
+                print(isLeftOn)
                 
                 DispatchQueue.main.async {
                     let send_address = "/mic-volume/";
@@ -466,6 +467,7 @@ class Transcription
                     autoStopTimer = nil
                     autoStopTimer = Timer.scheduledTimer(withTimeInterval: 50, repeats: false) { timer in
                         self.stopRecording()
+                        self.startRecording();
                     }
                     
                 } else
@@ -509,7 +511,10 @@ class Transcription
                         
                         self.autoStopTimer?.invalidate()
                         self.autoStopTimer = nil
+                        print("end speech it and stop")
                         self.stopRecording()
+                        print("start")
+
                        
                     }
                 } else
@@ -678,6 +683,8 @@ class Transcription
 
             // Arrêter le minuteur de silence
             self.silenceTimer?.invalidate()
+            self.startRecording();
+
         }
 
      

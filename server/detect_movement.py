@@ -44,6 +44,10 @@ def main():
 
             image.flags.writeable = True
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+            normalized_nose_x = 0.0
+            normalized_nose_y = 0.0
+
             if results.pose_landmarks:
                 mp_drawing.draw_landmarks(
                     image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
@@ -51,21 +55,27 @@ def main():
                 movement = calculate_movement(prev_landmarks, results.pose_landmarks)
                 movement_avg = moving_average(movement, moving_average_values)
 
-                #print(f"Movement intensity: {movement_avg}")
-
-                # Write the movement intensity on the image
                 cv2.putText(image, f"Movement intensity: {movement_avg:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
-                # Send smoothed movement intensity value over OSC
                 osc_client.send_message("/movementIntensity", movement_avg)
 
+                # Get normalized nose position
+                nose = results.pose_landmarks.landmark[0]
+                print(nose)
+                normalized_nose_x = (nose.x - 0.5) * 2.0
+                normalized_nose_y = (nose.y - 0.5) * 2.0
+
                 prev_landmarks = results.pose_landmarks
+
+            # Send normalized nose position via OSC
+            osc_client.send_message("/nose", [normalized_nose_x, normalized_nose_y])
 
             cv2.imshow('MediaPipe Pose', image)
             if cv2.waitKey(5) & 0xFF == 27:
                 break
 
         cap.release()
+
 
 if __name__ == "__main__":
     main()

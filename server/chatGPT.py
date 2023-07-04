@@ -2,16 +2,18 @@ from pythonosc import udp_client
 from openai.error import InvalidRequestError
 import re
 import subprocess
-
+import time
 class chatGPT:
 
     conversation_history = []
     transcription = ""
+    generated = ""
     end_it = False
     status = "waiting"
     class_id = 0
     pause = False
     log_client = None
+    currentThread = 0
 
     def __init__(self, ip_address, transcript_port_client, id, log_client):
 
@@ -78,7 +80,9 @@ class chatGPT:
 
     def callOpenAI(self, prompt, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode, talk, send_to_pde, pde_client):
 
-        print(self.class_id)
+        # set time as current time
+        t = time.time()
+        self.currentThread = t
 
         if playing_mode == "pause" :
             self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" paused, returns")
@@ -89,7 +93,9 @@ class chatGPT:
     
         if self.getStatus() == "processing":
             self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" processing, returns")
-            return
+            self.appendHistory({"role": "assistant", "content": self.generated})
+
+            #return
         if self.getStatus() == "will_waiting":
             self.log_client.send_message("/log/", "Call open AI "+str(self.class_id)+" will waiting, returns")
             return
@@ -111,6 +117,7 @@ class chatGPT:
         self.sendStatusMessage(osc_message)
         self.appendHistory({"role": "user", "content": prompt})
 
+        self.generated = "";
         try:
             response = openai.ChatCompletion.create(
                 model=model,#gpt-4
@@ -176,14 +183,16 @@ class chatGPT:
 
         for chunk in response:
 
-            if ( playing_mode == "pause" ):
+            if ( playing_mode == "pause" or self.currentThread != t):
                 return
 
             collected_chunks.append(chunk)
             chunk_message = chunk['choices'][0]['delta']
             collected_messages.append(chunk_message)
             full_reply_content = ''.join([m.get('content', '') for m in collected_messages])
+            self.generated = full_reply_content
 
+            print(self.generated)
             # We stop the processing loop if we get a "stop" message
             #if self.getEndIt(): 
                 #break

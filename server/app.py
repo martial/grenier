@@ -142,7 +142,7 @@ def handle_speech_message(address, *args):
     gpt.setTranscription(transcription)
     started_on_processing = (bool(args[1]))
 
-    print(gpt.getStatus())
+    print("Received " + transcription)
 
     if (transcription == "Stop"):
 
@@ -231,8 +231,11 @@ def end_speech_message(started_on_processing) :
     
     transcription = gpt.getTranscription()
 
+
+
     # Traitement du message OSC reçu
-    if (gpt.getStatus() == "waiting" and not started_on_processing and transcription != ''):
+    #if (gpt.getStatus() == "waiting" and transcription != ''):
+    if (transcription != ''):
         log_client.send_message("/log/", "Call open AI 1")
         gpt.callOpenAI(transcription, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode, talk, True, client)
     else:
@@ -256,6 +259,9 @@ def handle_end_speech_message(address, *args):
     started_on_processing = (bool(args[0]))
     thread = threading.Thread(target=end_speech_message, args=(started_on_processing,))
     thread.start()
+
+    print("handle_end_speech_message")
+    #print(transcription)
 
 
 def end_speech_message2(started_on_processing) :
@@ -293,7 +299,7 @@ def end_speech_message2(started_on_processing) :
 def handle_end_speech_message2(address, *args):
 
     started_on_processing = (bool(args[0]))
-    thread = threading.Thread(target=end_speech_message2, args=(started_on_processing,))
+    thread = threading.Thread(target=end_speech_message, args=(started_on_processing,))
     thread.start()
 
 

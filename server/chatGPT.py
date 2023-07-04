@@ -3,6 +3,8 @@ from openai.error import InvalidRequestError
 import re
 import subprocess
 import time
+import random
+
 class chatGPT:
 
     conversation_history = []
@@ -125,7 +127,8 @@ class chatGPT:
                 max_tokens=1024,
                 n=1,
                 stop=None,
-                temperature=gpt_temp,
+                #add random from -0.2 to 0.2
+                temperature=gpt_temp + (random.random() - 0.5) * 0.4,
                 stream=True
             )
 

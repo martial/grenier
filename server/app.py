@@ -427,6 +427,13 @@ def start_parameter_loop():
                 gpt2.sendStatusMessage(osc_message)
                 playing_mode_2 = c_playing_mode_2
 
+            config = getDBTransConfig()
+            if(config):
+                talk = config["talk"]
+                toggle_listen = config["toggle_listen"]
+                language = config["language"]
+                model = config["model"]
+
             # Check if config or history should be updated (changes from html form)
             res = getDBUpdate()
             if (res):
@@ -435,8 +442,14 @@ def start_parameter_loop():
                 gpt_action = res["gpt_action"]
                 gpt_temp = res["gpt_temp"]
 
+                print(language)
                 #concatenate role, context and action
-                prompt = gpt_role + gpt_context + gpt_action
+                prompt = gpt_role +" "+ gpt_context +" "  + gpt_action
+                if(language == "fr"):
+                    prompt += " Tu dois repondre absolument en langue francaise."
+                else:
+                    prompt += " You must answer in english language." 
+
                 gpt.flush(4)
                 gpt.appendHistory({"role": "system", "content": prompt})
                 #gpt.appendHistory({"role": "system", "content": gpt_role})
@@ -485,12 +498,7 @@ def start_parameter_loop():
                 gpt2.setEndIt(True)
                 setDBStop2(0)
 
-            res = getDBTransConfig()
-            if(res):
-                talk = res["talk"]
-                toggle_listen = res["toggle_listen"]
-                language = res["language"]
-                model = res["model"]
+            
             
             #time.sleep(1./30)
 

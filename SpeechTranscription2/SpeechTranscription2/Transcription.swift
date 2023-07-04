@@ -289,7 +289,10 @@ class Transcription
             
             if self.transcription != "" {
                 sendOSCMessage(address: "/end-speech/", values: [self.started_on_processing], port: UInt16(self.server_port_client))
+                self.transcription = ""
+
             }
+            
             sendOSCMessage(address: "/mic-status/", values: [1, self.isRightChannelOn])
             
             self.isAudioOpen = false
@@ -298,9 +301,10 @@ class Transcription
             self.autoStopTimer?.invalidate()
             self.autoStopTimer = nil
             self.stopRecording()
-            self.transcription = ""
 
-        } else if self.isRightChannelOn && !isRightOn {
+        }
+        
+        if self.isRightChannelOn && !isRightOn {
             self.isRightChannelOn = false
             sendOSCMessage(address: "/mic-status/", values: [1, self.isRightChannelOn])
             self.setPorts(mic_id: self.isRightChannelOn ? 1 : 0)

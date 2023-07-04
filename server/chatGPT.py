@@ -32,10 +32,11 @@ class chatGPT:
         self.conversation_history.append(data)
 
     def flush(self, nItemsToKeep):
-        self.conversation_history = self.conversation_history[-nItemsToKeep:]
+        #self.conversation_history = self.conversation_history[-nItemsToKeep:]
+        self.conversation_history = []
         #print all elements in the list
-        for elem in self.conversation_history:
-            print(elem)
+        #for elem in self.conversation_history:
+            #print(elem)
 
 
 

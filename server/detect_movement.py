@@ -47,7 +47,7 @@ def main():
 
             normalized_nose_x = 0.0
             normalized_nose_y = 0.0
-
+            normalized_nose_z = 0.0
             if results.pose_landmarks:
                 mp_drawing.draw_landmarks(
                     image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
@@ -61,14 +61,14 @@ def main():
 
                 # Get normalized nose position
                 nose = results.pose_landmarks.landmark[0]
-                print(nose)
                 normalized_nose_x = (nose.x - 0.5) * 2.0
                 normalized_nose_y = (nose.y - 0.5) * 2.0
-
+                normalized_nose_z = nose.z
                 prev_landmarks = results.pose_landmarks
+                print(normalized_nose_z)
 
             # Send normalized nose position via OSC
-            osc_client.send_message("/nose", [normalized_nose_x, normalized_nose_y])
+            osc_client.send_message("/nose", [normalized_nose_x, normalized_nose_y, normalized_nose_z])
 
             cv2.imshow('MediaPipe Pose', image)
             if cv2.waitKey(5) & 0xFF == 27:

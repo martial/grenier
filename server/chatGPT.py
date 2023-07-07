@@ -81,7 +81,7 @@ class chatGPT:
     def speak(self, text, language='fr'):
         subprocess.run(["say", "-v", f"{language}", text])
 
-    def saveConversation(self, filename):
+    def saveConversation(self):
         filename = "exports/" + self.currentThread + ".json"
 
         #save conversation as json

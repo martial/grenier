@@ -82,12 +82,11 @@ class chatGPT:
         subprocess.run(["say", "-v", f"{language}", text])
 
     def saveConversation(self):
-        if self.conversation_history:
-            filename = "exports/" + str(self.currentThread) + ".json"
+        filename = "exports/" + str(self.currentThread) + ".json"
 
-            #save conversation as json
-            with open(filename, 'w') as outfile:
-                json.dump(self.conversation_history, outfile)
+        #save conversation as json
+        with open(filename, 'w') as outfile:
+            json.dump(self.conversation_history, outfile)
 
 
     def callOpenAI(self, prompt, openai, gpt_role, gpt_context, gpt_action, model, gpt_temp, language, playing_mode, talk, send_to_pde, pde_client):

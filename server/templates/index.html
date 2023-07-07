@@ -2,14 +2,25 @@
   <head>
     <title>Config</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% if not showAll %}
+  <style>
+    body {
+        filter: invert(100%);
+        background: black;
+    }
+  </style>
+ {% endif %} 
   </head>
+
+  
+  
   <body>
 
     <div id="updated">{{ updated }}</div>
 
     <div id="container">
 
-        <h1>GRENIER SERVER CONFIGURATION</h1>
+        <h1>LES VOIX</h1>
         <div class="col">
             <form method="POST" action="{{ url_for('submit_form') }}">
 
@@ -19,6 +30,7 @@
                         <select name="language" id="language" >
                             <option value="fr" {% if language == 'fr' %} selected {% endif %}>Français</option>
                             <option value="en" {% if language == 'en' %} selected {% endif %}>English</option>
+                            <option value="es" {% if language == 'es' %} selected {% endif %}>Spanish</option>
                         </select>
                     </div>    
 
@@ -130,17 +142,17 @@
 
                 <div class="input">
                     <label for="gpt_role">Role</label>
-                    <textarea id="gpt_role" name="gpt_role" rows="4" placeholder="À partir de maintenant tu parles comme..." required></textarea>
+                    <textarea  {% if not showall %}readonly{% endif %} id="gpt_role" name="gpt_role" rows="4" placeholder="À partir de maintenant tu parles comme..." required></textarea>
                 </div>
 
                 <div class="input">
                     <label for="gpt_context">Context</label>
-                    <textarea id="gpt_context" name="gpt_context" rows="4" placeholder="Notre conversation doit prendre en compte le contexte suivant: ..." ></textarea>
+                    <textarea  {% if not showall %}readonly{% endif %} id="gpt_context" name="gpt_context" rows="4" placeholder="Notre conversation doit prendre en compte le contexte suivant: ..." ></textarea>
                 </div>
 
                 <div class="input">
                     <label for="gpt_action">Action</label>
-                    <textarea id="gpt_action" name="gpt_action" rows="4" ></textarea>
+                    <textarea  {% if not showall %}readonly{% endif %} id="gpt_action" name="gpt_action" rows="4" ></textarea>
                 </div>
 
                 <div class="row">

@@ -463,6 +463,7 @@ def start_parameter_loop():
             res = getDBReset1()
             if (res == 1):
                 gpt.setEndIt(True)
+                gpt.saveConversation();
                 gpt.resetHistory()
                 gpt.appendHistory({"role": "system", "content": gpt_role})
                 gpt.appendHistory({"role": "system", "content": gpt_context})
@@ -710,5 +711,5 @@ if __name__ == "__main__":
     sendTranscriptionConfig2()
     #webbrowser.open('http://'+ip_address+':'+str(server_port)+'/config')
 
-    app.run(debug=True, host="0.0.0.0", port=server_port)
+    app.run(debug=False, host="0.0.0.0", port=server_port)
 

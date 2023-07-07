@@ -4,7 +4,7 @@ import re
 import subprocess
 import time
 import random
-
+import json
 class chatGPT:
 
     conversation_history = []
